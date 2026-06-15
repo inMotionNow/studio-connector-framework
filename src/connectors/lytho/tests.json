@@ -1,0 +1,283 @@
+{
+  "setup": {
+    "runtime_options": {
+      "BASE_URL": "https://gcawifhrmwwmpw6mr2sco57p2a0txevm.lambda-url.us-east-1.on.aws"
+    }
+  },
+  "tests": [
+    {
+      "id": "1",
+      "name": "query - no filter",
+      "descr": "Calls POST /search with empty terms and default pagination",
+      "method": "query",
+      "arguments": {
+        "options": {
+          "pageToken": null,
+          "pageSize": 20,
+          "filter": [],
+          "collection": null,
+          "sortBy": null,
+          "sortOrder": null
+        },
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/search",
+            "method": "POST",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": {
+                "results": [
+                  {
+                    "type": "ASSETS",
+                    "totalHits": 1,
+                    "hits": [
+                      {
+                        "id": "69de58c9bb8c4c6895418fa0",
+                        "name": "Test Asset",
+                        "fileName": "test-asset.jpg",
+                        "extension": "jpg",
+                        "fileType": "image/jpeg",
+                        "width": 1920,
+                        "height": 1080,
+                        "tags": [{ "id": "tag-1", "name": "Product" }],
+                        "links": {
+                          "previewLink": { "url": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0", "expiration": null },
+                          "hrPreviewLink": { "url": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0", "expiration": null }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "2",
+      "name": "query - with search terms",
+      "descr": "Calls POST /search with a search term",
+      "method": "query",
+      "arguments": {
+        "options": {
+          "pageToken": null,
+          "pageSize": 20,
+          "filter": ["logo"],
+          "collection": null,
+          "sortBy": null,
+          "sortOrder": null
+        },
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/search",
+            "method": "POST",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": {
+                "results": [
+                  {
+                    "type": "ASSETS",
+                    "totalHits": 0,
+                    "hits": []
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "3",
+      "name": "query - second page",
+      "descr": "Uses pageToken as offset for second page",
+      "method": "query",
+      "arguments": {
+        "options": {
+          "pageToken": "20",
+          "pageSize": 20,
+          "filter": [],
+          "collection": null,
+          "sortBy": null,
+          "sortOrder": null
+        },
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/search",
+            "method": "POST",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": {
+                "results": [
+                  {
+                    "type": "ASSETS",
+                    "totalHits": 25,
+                    "hits": []
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "4",
+      "name": "detail",
+      "descr": "Calls GET /assets/assets/{id} and returns asset metadata",
+      "method": "detail",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/69de58c9bb8c4c6895418fa0",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Test Asset",
+                "fileName": "test-asset.jpg",
+                "extension": "jpg",
+                "fileType": "image/jpeg",
+                "width": 1920,
+                "height": 1080,
+                "tags": [{ "id": "tag-1", "name": "Product" }],
+                "links": {
+                  "previewLink": { "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 },
+                  "hrPreviewLink": { "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "5",
+      "name": "download - thumbnail",
+      "descr": "Routes thumbnail download through BASE_URL /preview/:id",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "thumbnail",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/preview/69de58c9bb8c4c6895418fa0",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "6",
+      "name": "download - mediumres",
+      "descr": "Routes mediumres download through BASE_URL /hrpreview/:id",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "mediumres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/hrpreview/69de58c9bb8c4c6895418fa0",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "7",
+      "name": "download - original",
+      "descr": "Calls /content directly for original download",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "original",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/69de58c9bb8c4c6895418fa0/content",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "8",
+      "name": "download - fullres",
+      "descr": "Routes fullres download through /assets/assets/:id/content",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "fullres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/69de58c9bb8c4c6895418fa0/content",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "9",
+      "name": "download - highres",
+      "descr": "Routes highres download through /assets/assets/:id/content",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "highres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/69de58c9bb8c4c6895418fa0/content",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    }
+  ]
+}
