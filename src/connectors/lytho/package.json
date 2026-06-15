@@ -15,7 +15,14 @@
       "TENANT_ID": null
     },
     "mappings": {},
-    "supportedAuth": ["oAuth2AuthorizationCode", "oAuth2ClientCredentials"]
+    "supportedAuth": ["oAuth2AuthorizationCode", "oAuth2ClientCredentials"],
+    "authenticationConfig": {
+      "oAuth2AuthorizationCode": {
+        "authorizationServerMetadata": {
+          "token_endpoint_auth_methods_supported": ["client_secret_basic"]
+        }
+      }
+    }
   },
   "license": "MIT",
   "main": "out/connector.js",
