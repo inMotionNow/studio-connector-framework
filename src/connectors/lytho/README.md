@@ -81,7 +81,6 @@ yarn connector-cli publish \
   -n Lytho \
   --connectorId c6d52e56-7772-41c6-be28-d20a7d75c7e7 \
   -ro BASE_URL=https://gcawifhrmwwmpw6mr2sco57p2a0txevm.lambda-url.us-east-1.on.aws \
-  -ro TENANT_ID=970 \
   --proxyOption.allowedDomains "*.us-east-1.on.aws"
 ```
 
@@ -90,8 +89,7 @@ yarn connector-cli publish \
 | `-b` | `https://cp-qbs-960.chili-publish.online/grafx` | CLI appends `api/v1/...` itself — do **not** include it here |
 | `-e` | `cp-qbs-960` | Chili Grafx environment ID |
 | `--connectorId` | `c6d52e56-...` | Omit on first publish; include on re-deploys to update the existing connector |
-| `-ro BASE_URL` | Lambda proxy URL | All 5 connector endpoints go through this URL — point at the proxy, not the Lytho API directly |
-| `-ro TENANT_ID` | `970` | Lytho tenant ID for the target realm |
+| `-ro BASE_URL` | Lambda proxy URL | All connector endpoints go through this URL — point at the proxy, not the Lytho API directly |
 | `--proxyOption.allowedDomains` | proxy domain only | Chili sandbox allowlist — only the proxy domain is needed now |
 
 ---
@@ -175,7 +173,7 @@ The connector routes all image download requests through the proxy instead of ca
 |---|---|---|
 | `GET /preview/:id` | `GET /assets/assets/:id/preview/link` → S3 | Thumbnails, low-res previews |
 | `GET /hrpreview/:id` | `GET /assets/assets/:id/hrpreview/link` → S3 | High-res previews |
-| `POST /search` | `POST /search` (passthrough) | Asset search / query |
+| `POST /grafx/api/v1/search` | `POST /grafx/api/v1/search` (passthrough) | Asset search / query (tenant resolved server-side) |
 | `GET /assets/assets/:id` | `GET /assets/assets/:id` (passthrough) | Asset detail metadata |
 | `GET /assets/assets/:id/content` | `GET /assets/assets/:id/content` (passthrough) | Asset content / original |
 
