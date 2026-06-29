@@ -142,48 +142,12 @@ yarn connector-cli set-auth \
 
 ---
 
-## Proxy Service
+## Connectivity
 
-### Why it exists
-
-**Reason 1 — S3 signed URL conflicts**
-
-The Chili Grafx runtime proxy injects `Authorization: Bearer <token>` into **every** `runtime.fetch()` call made by the connector. Lytho serves all binary image data (thumbnails, previews, downloads) via pre-signed AWS S3 URLs. S3 rejects any request that carries both its own query-parameter auth signature (`X-Amz-Algorithm`, `X-Amz-Signature`) **and** an `Authorization` header — it returns HTTP 400 "Only one auth mechanism allowed."
-
-There is no Lytho API endpoint that streams binary bytes directly; all binary delivery is delegated to S3.
-
-**Reason 2 — Dev API is not publicly accessible**
-
-When development moved from the Staging environment to the Dev environment, it became apparent that the Dev Lytho API is not publicly accessible. GraFx Studio runs in Chili's cloud and cannot reach a private API directly. The proxy was expanded to cover every API endpoint the connector needs — not just image downloads — so that GraFx has a single publicly-reachable URL to call, and the proxy forwards those calls to the private Dev API from within the network where it is accessible.
-
-### How the proxy solves it
-
-The connector routes all image download requests through the proxy instead of calling the Lytho API directly. The proxy:
-
-1. Accepts `GET /preview/:id` or `GET /hrpreview/:id` with the `Authorization: Bearer` header
-2. Uses the token to call the Lytho API and retrieve the S3 pre-signed URL
-3. Fetches the S3 URL **without** the `Authorization` header
-4. Streams the binary bytes back to the connector
-
-### Source and endpoints
-
-**Source:** `\src\temp-proxy\proxy.js`
-
-| Proxy endpoint | Lytho API call | Used for |
-|---|---|---|
-| `GET /preview/:id` | `GET /assets/assets/:id/preview/link` → S3 | Thumbnails, low-res previews |
-| `GET /hrpreview/:id` | `GET /assets/assets/:id/hrpreview/link` → S3 | High-res previews |
-| `POST /grafx/api/v1/search` | `POST /grafx/api/v1/search` (passthrough) | Asset search / query (tenant resolved server-side) |
-| `GET /assets/assets/:id` | `GET /assets/assets/:id` (passthrough) | Asset detail metadata |
-| `GET /assets/assets/:id/content` | `GET /assets/assets/:id/content` (passthrough) | Asset content / original |
-
-### Configuration
-
-The Lambda reads one environment variable:
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `LYTHO_BASE_URL` | `https://api.us-1.golytho.us` | Lytho API base URL to forward requests to |
+The connector calls whatever `BASE_URL` points at. In environments where the Lytho
+API isn't directly reachable, `BASE_URL` is pointed at a proxy/gateway that forwards
+to the API; where it's reachable, it points at the API directly. Either way this is a
+deployment detail — the connector code is unaffected.
 
 ---
 
