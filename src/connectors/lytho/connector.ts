@@ -106,7 +106,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       size: pageSize,
     };
 
-    const result = await this.runtime.fetch(`${baseUrl}/grafx/api/v1/search`, {
+    const result = await this.runtime.fetch(`${baseUrl}/search/grafx/api/v1/search`, {
       method: 'POST',
       headers: this._fetchHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
@@ -177,12 +177,20 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   ): Promise<Connector.ArrayBufferPointer> {
     const baseUrl = this._getBaseUrl();
 
-    let path: string;
-    if (previewType === 'thumbnail') {
-      path = `/preview/${encodeURIComponent(id)}`;
-    } else {
-      path = `/hrpreview/${encodeURIComponent(id)}`;
+    let variant: string;
+    switch (previewType) {
+      case 'thumbnail':
+        variant = 'preview';
+        break;
+      case 'mediumres':
+        variant = 'hrpreview';
+        break;
+      // 'highres' | 'fullres' | 'original' → full-resolution original bytes
+      default:
+        variant = 'content';
+        break;
     }
+    const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
     const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET', headers: this._fetchHeaders() });
     if (!result.ok) {
@@ -212,7 +220,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   // ─── Private Helpers ──────────────────────────────────────────────────────
 
   private _fetchHeaders(extra?: Record<string, string>): Record<string, string> {
-    return { 'ngrok-skip-browser-warning': 'true', ...extra };
+    return { ...extra };
   }
 
   private _getBaseUrl(): string {

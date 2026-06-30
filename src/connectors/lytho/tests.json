@@ -24,7 +24,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/grafx/api/v1/search",
+            "url": "/search/grafx/api/v1/search",
             "method": "POST",
             "count": 1,
             "response": {
@@ -71,7 +71,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/grafx/api/v1/search",
+            "url": "/search/grafx/api/v1/search",
             "method": "POST",
             "count": 1,
             "response": {
@@ -107,7 +107,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/grafx/api/v1/search",
+            "url": "/search/grafx/api/v1/search",
             "method": "POST",
             "count": 1,
             "response": {
@@ -164,7 +164,7 @@
     {
       "id": "5",
       "name": "download - thumbnail",
-      "descr": "Routes thumbnail download through BASE_URL /preview/:id",
+      "descr": "Routes thumbnail download to /assets/grafx/assets/:id/preview",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
@@ -175,7 +175,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/preview/69de58c9bb8c4c6895418fa0",
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/preview",
             "method": "GET",
             "count": 1
           }
@@ -185,7 +185,7 @@
     {
       "id": "6",
       "name": "download - mediumres",
-      "descr": "Routes mediumres download through BASE_URL /hrpreview/:id",
+      "descr": "Routes mediumres download to /assets/grafx/assets/:id/hrpreview",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
@@ -196,7 +196,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/hrpreview/69de58c9bb8c4c6895418fa0",
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/hrpreview",
             "method": "GET",
             "count": 1
           }
@@ -206,7 +206,7 @@
     {
       "id": "7",
       "name": "download - original",
-      "descr": "Calls /content directly for original download",
+      "descr": "Routes original download to /assets/grafx/assets/:id/content",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
@@ -217,7 +217,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/assets/69de58c9bb8c4c6895418fa0/content",
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/content",
             "method": "GET",
             "count": 1
           }
@@ -227,7 +227,7 @@
     {
       "id": "8",
       "name": "download - fullres",
-      "descr": "Routes fullres download through /assets/assets/:id/content",
+      "descr": "Routes fullres download to /assets/grafx/assets/:id/content",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
@@ -238,7 +238,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/assets/69de58c9bb8c4c6895418fa0/content",
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/content",
             "method": "GET",
             "count": 1
           }
@@ -248,7 +248,7 @@
     {
       "id": "9",
       "name": "download - highres",
-      "descr": "Routes highres download through /assets/assets/:id/content",
+      "descr": "Routes highres download to /assets/grafx/assets/:id/content",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
@@ -259,7 +259,7 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/assets/69de58c9bb8c4c6895418fa0/content",
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/content",
             "method": "GET",
             "count": 1
           }
