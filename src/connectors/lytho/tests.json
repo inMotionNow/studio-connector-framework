@@ -8,7 +8,7 @@
     {
       "id": "1",
       "name": "query - no filter",
-      "descr": "Calls POST /search with empty terms and default pagination",
+      "descr": "Calls POST /grafx/api/v1/search with empty terms and default pagination",
       "method": "query",
       "arguments": {
         "options": {
@@ -24,33 +24,26 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/search",
+            "url": "/grafx/api/v1/search",
             "method": "POST",
             "count": 1,
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
               "body": {
-                "results": [
+                "totalHits": 1,
+                "from": 0,
+                "size": 20,
+                "hits": [
                   {
-                    "type": "ASSETS",
-                    "totalHits": 1,
-                    "hits": [
-                      {
-                        "id": "69de58c9bb8c4c6895418fa0",
-                        "name": "Test Asset",
-                        "fileName": "test-asset.jpg",
-                        "extension": "jpg",
-                        "fileType": "image/jpeg",
-                        "width": 1920,
-                        "height": 1080,
-                        "tags": [{ "id": "tag-1", "name": "Product" }],
-                        "links": {
-                          "previewLink": { "url": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0", "expiration": null },
-                          "hrPreviewLink": { "url": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0", "expiration": null }
-                        }
-                      }
-                    ]
+                    "id": "69de58c9bb8c4c6895418fa0",
+                    "name": "Test Asset",
+                    "fileName": "test-asset.jpg",
+                    "extension": "jpg",
+                    "fileType": "image/jpeg",
+                    "width": 1920,
+                    "height": 1080,
+                    "tags": [{ "id": "tag-1", "name": "Product" }]
                   }
                 ]
               }
@@ -62,7 +55,7 @@
     {
       "id": "2",
       "name": "query - with search terms",
-      "descr": "Calls POST /search with a search term",
+      "descr": "Calls POST /grafx/api/v1/search with a search term",
       "method": "query",
       "arguments": {
         "options": {
@@ -78,20 +71,17 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/search",
+            "url": "/grafx/api/v1/search",
             "method": "POST",
             "count": 1,
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
               "body": {
-                "results": [
-                  {
-                    "type": "ASSETS",
-                    "totalHits": 0,
-                    "hits": []
-                  }
-                ]
+                "totalHits": 0,
+                "from": 0,
+                "size": 20,
+                "hits": []
               }
             }
           }
@@ -117,20 +107,17 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/search",
+            "url": "/grafx/api/v1/search",
             "method": "POST",
             "count": 1,
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
               "body": {
-                "results": [
-                  {
-                    "type": "ASSETS",
-                    "totalHits": 25,
-                    "hits": []
-                  }
-                ]
+                "totalHits": 25,
+                "from": 20,
+                "size": 20,
+                "hits": []
               }
             }
           }

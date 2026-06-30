@@ -27,7 +27,9 @@ interface LythoAsset {
   };
 }
 
-interface LythoSearchHit {
+// Slim, connector-owned shape returned by POST /grafx/api/v1/search. Decoupled from Lytho's
+// internal search models (the connector is destined for CHILI's public repo).
+interface ConnectorSearchHit {
   id: string;
   name: string;
   fileName: string;
@@ -36,20 +38,13 @@ interface LythoSearchHit {
   width: number | null;
   height: number | null;
   tags: LythoTag[];
-  links: {
-    previewLink: LythoDownloadLink;
-    hrPreviewLink: LythoDownloadLink | null;
-  };
 }
 
-interface LythoSearchResult {
-  type: string;
+interface ConnectorSearchResponse {
   totalHits: number;
-  hits: LythoSearchHit[];
-}
-
-interface LythoSearchResponse {
-  results: LythoSearchResult[];
+  from: number;
+  size: number;
+  hits: ConnectorSearchHit[];
 }
 
 // ─── Connector Implementation ─────────────────────────────────────────────────
@@ -99,67 +94,19 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       };
     }
 
-    const searchRequest: Record<string, unknown> = {
-      tags: [],
-      tagsOR: [],
-      similarFace: null,
-      similarImage: null,
-      colorAsHex: null,
-      collectionId: (options.collection && options.collection !== '/') ? options.collection : null,
-      users: [],
-      permissions: [],
+    // Tenant is resolved server-side from the authenticated user (realm/token); the connector
+    // sends only the filters it uses. The full search request is built inside dam-service-search.
+    const collectionId =
+      options.collection && options.collection !== '/' ? options.collection : null;
+
+    const body = {
       terms,
-      resolution: { min: 0 },
-      assetTypes: [],
-      metadata: [],
-      extensions: [],
-      formats: [],
-      dateFilter: {
-        modificationStart: null,
-        modificationEnd: null,
-        creationStart: null,
-        creationEnd: null,
-      },
-      embargo: {
-        useTimeFrameStart: null,
-        useTimeFrameEnd: null,
-        visibleTimeFrameStart: null,
-        visibleTimeFrameEnd: null,
-        filterPlannedOnly: false,
-        filterInvisibleOnly: false,
-        filterUnavailableOnly: false,
-      },
-      visibleTo: [],
-      outputGenerated: [],
-      customUploads: [],
-      publicationStatuses: [],
-      taxonomyGroupIds: [],
-      module: null,
-      expiredOnly: null,
-      withEmbeddedLink: null,
-      withTaxonomyGroup: null,
-      isFingerprinted: null,
-      fingerprintResults: null,
-      withQuitclaims: null,
-      noQuitclaims: null,
-      noPermissions: false,
-      isAiSearchEnabled: false,
-      sortBy: [{ fieldName: 'creationDate', order: 'desc' }],
-      tenant: this.runtime.options['TENANT_ID'] ?? '',
-      size: pageSize,
+      collectionId,
       from,
-      showDeleted: false,
-      timestamp: 0,
+      size: pageSize,
     };
 
-    const body: Record<string, unknown> = {
-      searchIn: ['ASSETS'],
-      aggregation: 'FILTERBAR',
-      scrollId: null,
-      searchRequest,
-    };
-
-    const result = await this.runtime.fetch(`${baseUrl}/search`, {
+    const result = await this.runtime.fetch(`${baseUrl}/grafx/api/v1/search`, {
       method: 'POST',
       headers: this._fetchHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
@@ -172,10 +119,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       );
     }
 
-    const json = JSON.parse(result.text) as LythoSearchResponse;
-    const assetResult = json.results?.find((r) => r.type === 'ASSETS');
-    const hits = assetResult?.hits ?? [];
-    const totalHits = assetResult?.totalHits ?? 0;
+    const json = JSON.parse(result.text) as ConnectorSearchResponse;
+    const hits = json.hits ?? [];
+    const totalHits = json.totalHits ?? 0;
     const nextFrom = from + pageSize;
 
     return {
@@ -277,7 +223,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
   }
 
-  private _searchHitToMedia(hit: LythoSearchHit): Media.Media {
+  private _searchHitToMedia(hit: ConnectorSearchHit): Media.Media {
     return {
       id: hit.id,
       name: hit.name,
