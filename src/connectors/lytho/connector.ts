@@ -71,7 +71,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
         `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
-        { method: 'GET', headers: this._fetchHeaders() }
+        { method: 'GET', headers: {} }
       );
       if (!result.ok) {
         throw new ConnectorHttpError(result.status, `Lytho: Asset lookup failed ${result.status} ${result.statusText}`);
@@ -108,7 +108,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
 
     const result = await this.runtime.fetch(`${baseUrl}/search/grafx/api/v1/search`, {
       method: 'POST',
-      headers: this._fetchHeaders({ 'Content-Type': 'application/json' }),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
 
@@ -144,7 +144,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // the two are not meant to match.
     const result = await this.runtime.fetch(
       `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
-      { method: 'GET', headers: this._fetchHeaders() }
+      { method: 'GET', headers: {} }
     );
 
     if (!result.ok) {
@@ -201,7 +201,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // NOT meant to match.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
-    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET', headers: this._fetchHeaders() });
+    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET', headers: {} });
     if (!result.ok) {
       throw new ConnectorHttpError(
         result.status,
@@ -227,10 +227,6 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   }
 
   // ─── Private Helpers ──────────────────────────────────────────────────────
-
-  private _fetchHeaders(extra?: Record<string, string>): Record<string, string> {
-    return { ...extra };
-  }
 
   private _getBaseUrl(): string {
     const baseUrl = this.runtime.options['BASE_URL'];
