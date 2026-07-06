@@ -139,6 +139,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   ): Promise<Media.MediaDetail> {
     const baseUrl = this._getBaseUrl();
 
+    // Metadata read uses the pre-existing `/assets/assets/{id}` endpoint. This is deliberately
+    // a different path shape from the `/assets/grafx/...` byte-download endpoint (see download());
+    // the two are not meant to match.
     const result = await this.runtime.fetch(
       `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
       { method: 'GET', headers: this._fetchHeaders() }
@@ -190,6 +193,12 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         variant = 'content';
         break;
     }
+    // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
+    // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
+    // connector to stream asset bytes directly and bypass Lytho's signed-S3 download links.
+    // Metadata reads (detail, and the query() ObjectID lookup) use the older, pre-existing
+    // `/assets/assets/{id}` endpoint. The two path families serve different purposes and are
+    // NOT meant to match.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
     const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET', headers: this._fetchHeaders() });
