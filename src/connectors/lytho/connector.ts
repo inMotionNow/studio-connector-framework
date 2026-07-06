@@ -27,7 +27,7 @@ interface LythoAsset {
   };
 }
 
-// Slim, connector-owned shape returned by POST /grafx/api/v1/search. Decoupled from Lytho's
+// Slim, connector-owned shape returned by POST /search/grafx/api/v1/search. Decoupled from Lytho's
 // internal search models (the connector is destined for CHILI's public repo).
 interface ConnectorSearchHit {
   id: string;
