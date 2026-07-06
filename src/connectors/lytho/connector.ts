@@ -27,7 +27,7 @@ interface LythoAsset {
   };
 }
 
-// Slim, connector-owned shape returned by POST /grafx/api/v1/search. Decoupled from Lytho's
+// Slim, connector-owned shape returned by POST /search/grafx/api/v1/search. Decoupled from Lytho's
 // internal search models (the connector is destined for CHILI's public repo).
 interface ConnectorSearchHit {
   id: string;
@@ -71,7 +71,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
         `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
-        { method: 'GET', headers: this._fetchHeaders() }
+        { method: 'GET' }
       );
       if (!result.ok) {
         throw new ConnectorHttpError(result.status, `Lytho: Asset lookup failed ${result.status} ${result.statusText}`);
@@ -106,9 +106,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       size: pageSize,
     };
 
-    const result = await this.runtime.fetch(`${baseUrl}/grafx/api/v1/search`, {
+    const result = await this.runtime.fetch(`${baseUrl}/search/grafx/api/v1/search`, {
       method: 'POST',
-      headers: this._fetchHeaders({ 'Content-Type': 'application/json' }),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
 
@@ -139,9 +139,12 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   ): Promise<Media.MediaDetail> {
     const baseUrl = this._getBaseUrl();
 
+    // Metadata read uses the pre-existing `/assets/assets/{id}` endpoint. This is deliberately
+    // a different path shape from the `/assets/grafx/...` byte-download endpoint (see download());
+    // the two are not meant to match.
     const result = await this.runtime.fetch(
       `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
-      { method: 'GET', headers: this._fetchHeaders() }
+      { method: 'GET' }
     );
 
     if (!result.ok) {
@@ -177,14 +180,28 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   ): Promise<Connector.ArrayBufferPointer> {
     const baseUrl = this._getBaseUrl();
 
-    let path: string;
-    if (previewType === 'thumbnail') {
-      path = `/preview/${encodeURIComponent(id)}`;
-    } else {
-      path = `/hrpreview/${encodeURIComponent(id)}`;
+    let variant: string;
+    switch (previewType) {
+      case 'thumbnail':
+        variant = 'preview';
+        break;
+      case 'mediumres':
+        variant = 'hrpreview';
+        break;
+      // 'highres' | 'fullres' | 'original' → full-resolution original bytes
+      default:
+        variant = 'content';
+        break;
     }
+    // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
+    // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
+    // connector to stream asset bytes directly and bypass Lytho's signed-S3 download links.
+    // Metadata reads (detail, and the query() ObjectID lookup) use the older, pre-existing
+    // `/assets/assets/{id}` endpoint. The two path families serve different purposes and are
+    // NOT meant to match.
+    const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
-    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET', headers: this._fetchHeaders() });
+    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET' });
     if (!result.ok) {
       throw new ConnectorHttpError(
         result.status,
@@ -210,10 +227,6 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   }
 
   // ─── Private Helpers ──────────────────────────────────────────────────────
-
-  private _fetchHeaders(extra?: Record<string, string>): Record<string, string> {
-    return { 'ngrok-skip-browser-warning': 'true', ...extra };
-  }
 
   private _getBaseUrl(): string {
     const baseUrl = this.runtime.options['BASE_URL'];
