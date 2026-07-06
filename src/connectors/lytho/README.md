@@ -6,7 +6,7 @@ A read-only [CHILI GraFx Studio media connector](https://docs.chili-publish.com/
 
 **Upload/write is out of scope** — this connector is read-only.
 
-> **Placeholders:** commands below use angle-bracket placeholders. Substitute the values for the realm/environment you're deploying to (a concrete `dev-us / dragon` set is in [Appendix: worked example](#appendix-worked-example--dev-us--dragon)):
+> **Placeholders:** commands below use angle-bracket placeholders. Substitute the values for the realm/environment you're deploying to. The [Appendix](#appendix-illustrative-example--filling-in-the-placeholders) shows the *shape* of each value with illustrative examples; the real per-environment values live in the internal setup doc linked below.
 >
 > | Placeholder | Meaning |
 > |---|---|
@@ -207,19 +207,22 @@ When `BASE_URL` is a proxy Function URL, `--proxyOption.allowedDomains` must mat
 
 ---
 
-## Appendix: worked example — dev-us / dragon
+## Appendix: illustrative example — filling in the placeholders
 
-Concrete values for the DEV-US / `dragon` deployment, to sanity-check the placeholders above. Other realms/environments follow the same steps with their own values.
+Fabricated values showing the *shape* of each placeholder. **These are illustrative only — not a real deployment; do not use them.** For the real per-environment values (dev-us / `dragon` and any other onboarded realm), see the internal setup doc:
+**[Keycloak Client Setup — Lytho Media Connector (CHILI GraFx)](https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338)** → the "Per-environment values" table.
 
-| Placeholder | Value |
+| Placeholder | Example (illustrative only) |
 |---|---|
-| `<grafx-env>` | `cp-qbs-960` |
-| `<grafx-base>` | `https://cp-qbs-960.chili-publish.online/grafx` |
-| `<connector-name>` | `Lytho — dragon (dev-us)` |
-| `<connector-id>` | `81092dea-6d2c-4be7-91b4-b8a9cc07417d` |
-| `<base-url>` (proxy Function URL) | `https://ehr62lw6xfwkl65itf7t6qlijq0fdngd.lambda-url.us-east-1.on.aws` |
+| `<grafx-env>` | `cp-example-000` |
+| `<grafx-base>` | `https://cp-example-000.chili-publish.online/grafx` |
+| `<connector-name>` | `Lytho — <realm> (<env>)` |
+| `<connector-id>` | `00000000-0000-0000-0000-000000000000` |
+| `<base-url>` (proxy Function URL) | `https://example-proxy.lambda-url.us-east-1.on.aws` |
 | `<allowed-domains>` | `*.us-east-1.on.aws` |
-| `<realm>` | `dragon` (tenant `970`) |
-| `<keycloak-host>` | `login.dev1-cluster.p.golytho.com` |
+| `<realm>` | `example-realm` (tenant `000`) |
+| `<keycloak-host>` | `login.keycloak.example.com` |
+| `<auth-dir>` | `/path/to/your/auth-data-files` (outside the repo) |
 | Keycloak client | `chili-media-connector` |
-| Keycloak setup doc | https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338 |
+
+> Every realm/environment follows the same steps with its own connector ID, proxy URL, realm, and Keycloak host. The real values live in the internal setup doc linked above — this repo keeps only illustrative placeholders so nothing environment-specific ships if the connector is published upstream.
