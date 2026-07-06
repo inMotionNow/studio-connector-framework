@@ -71,7 +71,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
         `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
-        { method: 'GET', headers: {} }
+        { method: 'GET' }
       );
       if (!result.ok) {
         throw new ConnectorHttpError(result.status, `Lytho: Asset lookup failed ${result.status} ${result.statusText}`);
@@ -144,7 +144,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // the two are not meant to match.
     const result = await this.runtime.fetch(
       `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
-      { method: 'GET', headers: {} }
+      { method: 'GET' }
     );
 
     if (!result.ok) {
@@ -201,7 +201,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // NOT meant to match.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
-    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET', headers: {} });
+    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET' });
     if (!result.ok) {
       throw new ConnectorHttpError(
         result.status,
