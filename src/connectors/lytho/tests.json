@@ -8,7 +8,7 @@
     {
       "id": "1",
       "name": "query - no filter",
-      "descr": "Calls POST /grafx/api/v1/search with empty terms and default pagination",
+      "descr": "Calls POST /search/grafx/api/v1/search with empty terms and default pagination",
       "method": "query",
       "arguments": {
         "options": {
@@ -55,7 +55,7 @@
     {
       "id": "2",
       "name": "query - with search terms",
-      "descr": "Calls POST /grafx/api/v1/search with a search term",
+      "descr": "Calls POST /search/grafx/api/v1/search with a search term",
       "method": "query",
       "arguments": {
         "options": {
