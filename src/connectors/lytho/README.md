@@ -18,6 +18,7 @@ A read-only [CHILI GraFx Studio media connector](https://docs.chili-publish.com/
 > | `<allowed-domains>` | CHILI sandbox allowlist glob for `<base-url>`'s domain |
 > | `<realm>` | Keycloak realm (1:1 with a Lytho tenant) |
 > | `<keycloak-host>` | Keycloak host for that realm |
+> | `<auth-dir>` | Directory holding the auth-data files (kept outside the repo — see Step 1) |
 
 ---
 
@@ -59,7 +60,9 @@ Keycloak client setup (flows, the required `tenant` claim mapper, service-accoun
 
 ## Step 1 — Create the auth-data files
 
-Both files live in `src/connectors/lytho/` and are **gitignored — never commit them (they contain the client secret).** Get the secret from Keycloak → Clients → `chili-media-connector` → Credentials.
+These two files hold the `chili-media-connector` **client secret**. Get the secret from Keycloak → Clients → `chili-media-connector` → Credentials.
+
+> ⚠️ **Never commit these files.** Recommended practice is to keep them **outside the repository** — in any directory of your choosing — and pass their absolute path to `--auth-data-file` in Step 6 (shown below as `<auth-dir>`). As a backstop, `src/connectors/lytho/.gitignore` ignores `auth-data*.json`, so they won't be tracked even if you do place them in the connector folder.
 
 `auth-data.json` (browser / authorization code):
 ```json
@@ -171,13 +174,13 @@ Run **both** commands after **every** publish — GraFx does not preserve auth c
 yarn connector-cli set-auth \
   -b <grafx-base> -e <grafx-env> \
   --connectorId <connector-id> \
-  -au browser -at oAuth2AuthorizationCode --auth-data-file ./auth-data.json
+  -au browser -at oAuth2AuthorizationCode --auth-data-file <auth-dir>/auth-data.json
 
 # Server → client credentials (render/export)
 yarn connector-cli set-auth \
   -b <grafx-base> -e <grafx-env> \
   --connectorId <connector-id> \
-  -au server -at oAuth2ClientCredentials --auth-data-file ./auth-data-dev-server.json
+  -au server -at oAuth2ClientCredentials --auth-data-file <auth-dir>/auth-data-dev-server.json
 ```
 
 ---
