@@ -6,6 +6,19 @@ A read-only [CHILI GraFx Studio media connector](https://docs.chili-publish.com/
 
 **Upload/write is out of scope** — this connector is read-only.
 
+> **Placeholders:** commands below use angle-bracket placeholders. Substitute the values for the realm/environment you're deploying to (a concrete `dev-us / dragon` set is in [Appendix: worked example](#appendix-worked-example--dev-us--dragon)):
+>
+> | Placeholder | Meaning |
+> |---|---|
+> | `<grafx-env>` | CHILI GraFx environment ID |
+> | `<grafx-base>` | CHILI GraFx base URL — `https://<grafx-env>.chili-publish.online/grafx` |
+> | `<connector-id>` | The connector's ID (minted by the CLI on first publish) |
+> | `<connector-name>` | Display name — convention: `Lytho — <realm> (<env>)` |
+> | `<base-url>` | What the connector calls at runtime — the proxy Function URL in DEV, or the Lytho API host directly where reachable |
+> | `<allowed-domains>` | CHILI sandbox allowlist glob for `<base-url>`'s domain |
+> | `<realm>` | Keycloak realm (1:1 with a Lytho tenant) |
+> | `<keycloak-host>` | Keycloak host for that realm |
+
 ---
 
 ## How it works (auth model)
@@ -38,7 +51,7 @@ Keycloak client setup (flows, the required `tenant` claim mapper, service-accoun
 
 - Node.js with Yarn
 - `@chili-publish/connector-cli` (in `devDependencies`)
-- Access to the CHILI GraFx environment (`cp-qbs-960`)
+- Access to the target CHILI GraFx environment (`<grafx-env>`)
 - The target Keycloak realm and the `chili-media-connector` client secret
 - The Keycloak client configured per the [Confluence doc](https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338)
 
@@ -52,8 +65,8 @@ Both files live in `src/connectors/lytho/` and are **gitignored — never commit
 ```json
 {
   "authorizationServerMetadata": {
-    "authorization_endpoint": "https://login.dev1-cluster.p.golytho.com/auth/realms/dragon/protocol/openid-connect/auth",
-    "token_endpoint": "https://login.dev1-cluster.p.golytho.com/auth/realms/dragon/protocol/openid-connect/token",
+    "authorization_endpoint": "https://<keycloak-host>/auth/realms/<realm>/protocol/openid-connect/auth",
+    "token_endpoint": "https://<keycloak-host>/auth/realms/<realm>/protocol/openid-connect/token",
     "token_endpoint_auth_methods_supported": ["client_secret_basic"]
   },
   "clientId": "chili-media-connector",
@@ -67,12 +80,12 @@ Both files live in `src/connectors/lytho/` and are **gitignored — never commit
 {
   "clientId": "chili-media-connector",
   "clientSecret": "<SECRET>",
-  "tokenEndpoint": "https://login.dev1-cluster.p.golytho.com/auth/realms/dragon/protocol/openid-connect/token",
+  "tokenEndpoint": "https://<keycloak-host>/auth/realms/<realm>/protocol/openid-connect/token",
   "scope": "openid"
 }
 ```
 
-> Swap the realm/host for a different environment. The two formats differ — authorization code uses the nested `authorizationServerMetadata`, client credentials uses the flat `tokenEndpoint`; the CLI rejects the wrong shape.
+> The two formats differ — authorization code uses the nested `authorizationServerMetadata`, client credentials uses the flat `tokenEndpoint`; the CLI rejects the wrong shape.
 
 ---
 
@@ -106,32 +119,32 @@ The display name is applied via `-n` at publish time — **not** baked into `pac
 **First publish of a new connector** — omit `--connectorId`; the CLI mints a new one and prints it:
 ```bash
 yarn connector-cli publish \
-  -b https://cp-qbs-960.chili-publish.online/grafx \
-  -e cp-qbs-960 \
-  -n "Lytho — dragon (dev-us)" \
-  -ro BASE_URL=https://ehr62lw6xfwkl65itf7t6qlijq0fdngd.lambda-url.us-east-1.on.aws \
-  --proxyOption.allowedDomains "*.us-east-1.on.aws"
+  -b <grafx-base> \
+  -e <grafx-env> \
+  -n "<connector-name>" \
+  -ro BASE_URL=<base-url> \
+  --proxyOption.allowedDomains "<allowed-domains>"
 ```
 
 **Re-deploy an existing connector** — include `--connectorId` to update in place:
 ```bash
 yarn connector-cli publish \
-  -b https://cp-qbs-960.chili-publish.online/grafx \
-  -e cp-qbs-960 \
-  -n "Lytho — dragon (dev-us)" \
-  --connectorId 81092dea-6d2c-4be7-91b4-b8a9cc07417d \
-  -ro BASE_URL=https://ehr62lw6xfwkl65itf7t6qlijq0fdngd.lambda-url.us-east-1.on.aws \
-  --proxyOption.allowedDomains "*.us-east-1.on.aws"
+  -b <grafx-base> \
+  -e <grafx-env> \
+  -n "<connector-name>" \
+  --connectorId <connector-id> \
+  -ro BASE_URL=<base-url> \
+  --proxyOption.allowedDomains "<allowed-domains>"
 ```
 
 | Flag | Value | Notes |
 |---|---|---|
-| `-b` | `https://cp-qbs-960.chili-publish.online/grafx` | CLI appends `api/v1/...` itself — don't include it |
-| `-e` | `cp-qbs-960` | CHILI GraFx environment ID |
-| `-n` | `"Lytho — dragon (dev-us)"` | Convention: `Lytho — <realm> (<env>)`. Always pass it |
-| `--connectorId` | `81092dea-6d2c-4be7-91b4-b8a9cc07417d` | Omit on first publish; include to re-deploy |
-| `-ro BASE_URL` | proxy Function URL | All connector calls go through this — the DEV proxy, not the Lytho API directly |
-| `--proxyOption.allowedDomains` | `"*.us-east-1.on.aws"` | CHILI sandbox allowlist — the proxy domain |
+| `-b` | `<grafx-base>` | CLI appends `api/v1/...` itself — don't include it |
+| `-e` | `<grafx-env>` | CHILI GraFx environment ID |
+| `-n` | `"<connector-name>"` | Convention: `Lytho — <realm> (<env>)`. Always pass it |
+| `--connectorId` | `<connector-id>` | Omit on first publish; include to re-deploy |
+| `-ro BASE_URL` | `<base-url>` | All connector calls go through this — the DEV proxy, not the Lytho API directly |
+| `--proxyOption.allowedDomains` | `"<allowed-domains>"` | CHILI sandbox allowlist — the `<base-url>` domain |
 
 ---
 
@@ -141,9 +154,9 @@ yarn connector-cli publish \
 
 ```bash
 yarn connector-cli update \
-  -b https://cp-qbs-960.chili-publish.online/grafx \
-  -e cp-qbs-960 \
-  --connectorId 81092dea-6d2c-4be7-91b4-b8a9cc07417d \
+  -b <grafx-base> \
+  -e <grafx-env> \
+  --connectorId <connector-id> \
   --enabled true
 ```
 
@@ -156,14 +169,14 @@ Run **both** commands after **every** publish — GraFx does not preserve auth c
 ```bash
 # Browser → authorization code (per-user login)
 yarn connector-cli set-auth \
-  -b https://cp-qbs-960.chili-publish.online/grafx -e cp-qbs-960 \
-  --connectorId 81092dea-6d2c-4be7-91b4-b8a9cc07417d \
+  -b <grafx-base> -e <grafx-env> \
+  --connectorId <connector-id> \
   -au browser -at oAuth2AuthorizationCode --auth-data-file ./auth-data.json
 
 # Server → client credentials (render/export)
 yarn connector-cli set-auth \
-  -b https://cp-qbs-960.chili-publish.online/grafx -e cp-qbs-960 \
-  --connectorId 81092dea-6d2c-4be7-91b4-b8a9cc07417d \
+  -b <grafx-base> -e <grafx-env> \
+  --connectorId <connector-id> \
   -au server -at oAuth2ClientCredentials --auth-data-file ./auth-data-dev-server.json
 ```
 
@@ -174,12 +187,12 @@ yarn connector-cli set-auth \
 The browser (authorization code) flow needs the connector's redirect URI registered in the Keycloak client's **Valid redirect URIs**. **The redirect URI contains the connector ID**, so each connector needs its own:
 
 ```
-https://cp-qbs-960.chili-publish.online/grafx/api/v1/environment/cp-qbs-960/connectors/81092dea-6d2c-4be7-91b4-b8a9cc07417d/auth/oauth-authorization-code/redirect
+<grafx-base>/api/v1/environment/<grafx-env>/connectors/<connector-id>/auth/oauth-authorization-code/redirect
 ```
 
 > **Trap:** the Valid redirect URIs field truncates, hiding the connector-ID segment at the end — an existing entry for a *different* connector looks like it covers the new one but doesn't. If login fails with `Invalid Parameter: redirect_uri`, copy the exact `redirect_uri` query param out of the Keycloak URL you were sent to and register that. For DEV convenience, a path wildcard covers all connectors in the env: `.../connectors/*/auth/oauth-authorization-code/redirect` (prefer exact-match for production).
 
-Verify: in Studio, add a media variable sourced from `Lytho — dragon (dev-us)`, open the asset browser, and complete the realm login — the asset browser should load.
+Verify: in Studio, add a media variable sourced from `<connector-name>`, open the asset browser, and complete the realm login — the asset browser should load.
 
 ---
 
@@ -187,20 +200,23 @@ Verify: in Studio, add a media variable sourced from `Lytho — dragon (dev-us)`
 
 The connector calls whatever `BASE_URL` points at. In DEV the Lytho API isn't publicly reachable from CHILI's cloud, so `BASE_URL` points at a **proxy** (an AWS Lambda in `dam-service-chili`, `lambdas/lytho-proxy/`) that forwards allowlisted paths — with the caller's bearer token — to the DEV API host. Where the API is directly reachable, `BASE_URL` can point at it directly and the proxy drops out. Either way the connector code is unaffected.
 
+When `BASE_URL` is a proxy Function URL, `--proxyOption.allowedDomains` must match that host's domain; when it points at the API directly, match the API host's domain instead.
+
 ---
 
-## Environment reference (dev-us / dragon)
+## Appendix: worked example — dev-us / dragon
 
-| Item | Value |
+Concrete values for the DEV-US / `dragon` deployment, to sanity-check the placeholders above. Other realms/environments follow the same steps with their own values.
+
+| Placeholder | Value |
 |---|---|
-| CHILI GraFx environment ID | `cp-qbs-960` |
-| CHILI GraFx base URL | `https://cp-qbs-960.chili-publish.online/grafx` |
-| Connector name | `Lytho — dragon (dev-us)` |
-| Connector ID | `81092dea-6d2c-4be7-91b4-b8a9cc07417d` |
-| Proxy (`BASE_URL`) | `https://ehr62lw6xfwkl65itf7t6qlijq0fdngd.lambda-url.us-east-1.on.aws` |
-| Keycloak realm | `dragon` (tenant `970`) |
-| Keycloak host | `login.dev1-cluster.p.golytho.com` |
+| `<grafx-env>` | `cp-qbs-960` |
+| `<grafx-base>` | `https://cp-qbs-960.chili-publish.online/grafx` |
+| `<connector-name>` | `Lytho — dragon (dev-us)` |
+| `<connector-id>` | `81092dea-6d2c-4be7-91b4-b8a9cc07417d` |
+| `<base-url>` (proxy Function URL) | `https://ehr62lw6xfwkl65itf7t6qlijq0fdngd.lambda-url.us-east-1.on.aws` |
+| `<allowed-domains>` | `*.us-east-1.on.aws` |
+| `<realm>` | `dragon` (tenant `970`) |
+| `<keycloak-host>` | `login.dev1-cluster.p.golytho.com` |
 | Keycloak client | `chili-media-connector` |
 | Keycloak setup doc | https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338 |
-
-> This is the DEV-US / `dragon` deployment. Other realms/environments follow the same steps with their own connector ID, proxy URL, realm, and Keycloak host.
