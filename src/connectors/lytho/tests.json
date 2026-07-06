@@ -265,6 +265,50 @@
           }
         ]
       }
+    },
+    {
+      "id": "10",
+      "name": "query - ObjectID intercept (resolve saved asset)",
+      "descr": "query(pageSize=1, filter=[24-hex ObjectID]) resolves the asset directly via GET /assets/assets/{id} instead of the search path",
+      "method": "query",
+      "arguments": {
+        "options": {
+          "pageToken": null,
+          "pageSize": 1,
+          "filter": ["69de58c9bb8c4c6895418fa0"],
+          "collection": null,
+          "sortBy": null,
+          "sortOrder": null
+        },
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/69de58c9bb8c4c6895418fa0",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Test Asset",
+                "fileName": "test-asset.jpg",
+                "extension": "jpg",
+                "fileType": "image/jpeg",
+                "width": 1920,
+                "height": 1080,
+                "tags": [{ "id": "tag-1", "name": "Product" }],
+                "links": {
+                  "previewLink": { "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 },
+                  "hrPreviewLink": { "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 }
+                }
+              }
+            }
+          }
+        ]
+      }
     }
   ]
 }
