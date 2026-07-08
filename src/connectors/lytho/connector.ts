@@ -48,9 +48,11 @@ interface ConnectorSearchResponse {
 }
 
 // CHILI GraFx-supported asset file types (per docs.chiligrafx.com/GraFx-Media/overview/filetypes).
-// Only assets with these extensions are surfaced in the connector. The list is sent to the search
-// API, which matches extensions case-sensitively — so every format is listed in both lower- and
-// upper-case. `jpeg`/`tiff` are the `jpg`/`tif` synonyms.
+// Sent with the search request to filter search/browse results to assets CHILI can use. This does
+// not constrain direct id lookups — detail() and the query() ObjectID intercept resolve a known
+// asset regardless of extension; browse filtering is what prevents placing unsupported types.
+// The search API matches extensions case-sensitively, so each format is listed in both lower- and
+// upper-case; `jpeg`/`tiff` are the `jpg`/`tif` synonyms.
 // NOTE: mixed-case extensions (e.g. `.Tif`) are still missed — the DAM stores `extension` as a
 // case-sensitive keyword. A case-insensitive fix (index normalizer) is tracked as a separate ticket.
 const SUPPORTED_FILE_FORMATS = ['eps', 'jpg', 'jpeg', 'pdf', 'png', 'psd', 'tif', 'tiff', 'ai'];

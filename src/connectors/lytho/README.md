@@ -210,9 +210,11 @@ yarn test
 list in its search body so the DAM only returns assets CHILI can use (OCD-108). The `connector-cli`
 test harness (`tests.json`) asserts only the request **URL**, **method**, and call **count** and
 returns a canned response — it does **not** inspect the outgoing request **body**. So there is no
-automated assertion here that the `extensions` list is actually sent. That behavior is covered
-instead by: the TypeScript build, server-side unit tests on the search API (which assert the
-extension filter is applied), and manual end-to-end verification against a live environment.
+automated assertion here that the `extensions` list is actually sent. The adjacent checks do not
+close that gap either: the TypeScript build only proves the code compiles, and the search API's
+server-side unit tests only prove the server applies an extensions filter it is given — neither
+proves this connector puts `extensions` in the request. That is verified only by code review and
+manual end-to-end testing through the connector against a live environment.
 
 ## Connectivity
 
