@@ -211,8 +211,8 @@ list in its search body so the DAM only returns assets CHILI can use (OCD-108). 
 test harness (`tests.json`) asserts only the request **URL**, **method**, and call **count** and
 returns a canned response — it does **not** inspect the outgoing request **body**. So there is no
 automated assertion here that the `extensions` list is actually sent. That behavior is covered
-instead by: the TypeScript build, the `dam-service-search` server-side unit tests (which assert the
-filter is applied), and manual end-to-end verification against a live environment.
+instead by: the TypeScript build, server-side unit tests on the search API (which assert the
+extension filter is applied), and manual end-to-end verification against a live environment.
 
 ## Connectivity
 
