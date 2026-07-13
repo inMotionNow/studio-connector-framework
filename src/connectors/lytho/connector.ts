@@ -47,6 +47,17 @@ interface ConnectorSearchResponse {
   hits: ConnectorSearchHit[];
 }
 
+// CHILI GraFx-supported asset file types (per docs.chiligrafx.com/GraFx-Media/overview/filetypes).
+// Sent with the search request to filter search/browse results to assets CHILI can use. This does
+// not constrain direct id lookups — detail() and the query() ObjectID intercept resolve a known
+// asset regardless of extension; browse filtering is what prevents placing unsupported types.
+// The search API matches extensions case-sensitively, so each format is listed in both lower- and
+// upper-case; `jpeg`/`tiff` are the `jpg`/`tif` synonyms.
+// NOTE: mixed-case extensions (e.g. `.Tif`) are still missed — the DAM stores `extension` as a
+// case-sensitive keyword. A case-insensitive fix (index normalizer) is tracked as a separate ticket.
+const SUPPORTED_FILE_FORMATS = ['eps', 'jpg', 'jpeg', 'pdf', 'png', 'psd', 'tif', 'tiff', 'ai'];
+const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.toUpperCase()]);
+
 // ─── Connector Implementation ─────────────────────────────────────────────────
 
 export default class LythoMediaConnector implements Media.MediaConnector {
@@ -104,6 +115,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       collectionId,
       from,
       size: pageSize,
+      extensions: SUPPORTED_EXTENSIONS,
     };
 
     const result = await this.runtime.fetch(`${baseUrl}/search/grafx/api/v1/search`, {
