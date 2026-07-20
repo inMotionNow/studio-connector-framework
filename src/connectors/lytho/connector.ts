@@ -200,7 +200,14 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       case 'mediumres':
         variant = 'hrpreview';
         break;
-      // 'highres' | 'fullres' | 'original' → full-resolution original bytes
+      case 'highres':
+      case 'fullres':
+        // On-screen canvas (web intent) can't decode raw non-raster originals (PSD/EPS/AI/TIFF).
+        // Serve the DAM's rasterized hi-res twin for display; keep the original for print/animation
+        // so the export pipeline preserves vector fidelity (e.g. AI) and full resolution.
+        variant = intent === 'web' ? 'hrpreview' : 'content';
+        break;
+      // 'original' → full-resolution original bytes
       default:
         variant = 'content';
         break;

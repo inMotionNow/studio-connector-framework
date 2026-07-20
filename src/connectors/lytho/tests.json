@@ -226,13 +226,55 @@
     },
     {
       "id": "8",
-      "name": "download - fullres",
-      "descr": "Routes fullres download to /assets/grafx/assets/:id/content",
+      "name": "download - fullres (web intent)",
+      "descr": "On the web (on-screen) intent, fullres routes to the rasterized twin /assets/grafx/assets/:id/hrpreview so the canvas can decode non-raster originals",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
         "download_type": "fullres",
         "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "9",
+      "name": "download - highres (web intent)",
+      "descr": "On the web (on-screen) intent, highres routes to the rasterized twin /assets/grafx/assets/:id/hrpreview so the canvas can decode non-raster originals",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "highres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "11",
+      "name": "download - highres (print intent)",
+      "descr": "On an export (print) intent, highres keeps the true original /assets/grafx/assets/:id/content so export fidelity is preserved (guards the intent gate)",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "highres",
+        "download_intent": "print",
         "context": {}
       },
       "asserts": {
@@ -246,14 +288,14 @@
       }
     },
     {
-      "id": "9",
-      "name": "download - highres",
-      "descr": "Routes highres download to /assets/grafx/assets/:id/content",
+      "id": "12",
+      "name": "download - fullres (print intent)",
+      "descr": "On an export (print) intent, fullres keeps the true original /assets/grafx/assets/:id/content so export fidelity is preserved (guards the intent gate)",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
-        "download_type": "highres",
-        "download_intent": "web",
+        "download_type": "fullres",
+        "download_intent": "print",
         "context": {}
       },
       "asserts": {
