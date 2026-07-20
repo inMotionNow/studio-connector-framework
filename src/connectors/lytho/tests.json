@@ -267,7 +267,7 @@
       }
     },
     {
-      "id": "11",
+      "id": "10",
       "name": "download - highres (print intent)",
       "descr": "On an export (print) intent, highres keeps the true original /assets/grafx/assets/:id/content so export fidelity is preserved (guards the intent gate)",
       "method": "download",
@@ -288,7 +288,7 @@
       }
     },
     {
-      "id": "12",
+      "id": "11",
       "name": "download - fullres (print intent)",
       "descr": "On an export (print) intent, fullres keeps the true original /assets/grafx/assets/:id/content so export fidelity is preserved (guards the intent gate)",
       "method": "download",
@@ -309,7 +309,28 @@
       }
     },
     {
-      "id": "10",
+      "id": "12",
+      "name": "download - fullres (animation intent)",
+      "descr": "On an export (animation) intent, fullres keeps the true original /assets/grafx/assets/:id/content so export fidelity is preserved (guards the intent gate)",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "fullres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/content",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "13",
       "name": "query - ObjectID intercept (resolve saved asset)",
       "descr": "query(pageSize=1, filter=[24-hex ObjectID]) resolves the asset directly via GET /assets/assets/{id} instead of the search path",
       "method": "query",
