@@ -226,8 +226,8 @@
     },
     {
       "id": "8",
-      "name": "download - fullres (web intent)",
-      "descr": "On the web (on-screen) intent, fullres routes to the rasterized twin /assets/grafx/assets/:id/hrpreview so the canvas can decode non-raster originals",
+      "name": "download - fullres (web intent, raster original)",
+      "descr": "On the web (on-screen) intent, a PNG/JPEG asset at fullres is served as its original bytes via /assets/grafx/assets/:id/content — GraFx accepts PNG/JPEG on-screen, so no conversion. The file type is resolved first via GET /assets/assets/:id.",
       "method": "download",
       "arguments": {
         "id": "69de58c9bb8c4c6895418fa0",
@@ -238,7 +238,17 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/hrpreview",
+            "url": "/assets/assets/69de58c9bb8c4c6895418fa0",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "69de58c9bb8c4c6895418fa0", "name": "Raster Asset", "extension": "jpg", "fileType": "image/jpeg" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/content",
             "method": "GET",
             "count": 1
           }
@@ -369,6 +379,58 @@
                 }
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "id": "14",
+      "name": "download - fullres (web intent, non-raster original)",
+      "descr": "On the web (on-screen) intent, a non-PNG/JPEG asset (e.g. EPS) at fullres is converted to the rasterized twin /assets/grafx/assets/:id/hrpreview so the canvas can decode it. The file type is resolved first via GET /assets/assets/:id.",
+      "method": "download",
+      "arguments": {
+        "id": "5f9d1e2c3b4a5968770a1b2c",
+        "download_type": "fullres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/5f9d1e2c3b4a5968770a1b2c",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/5f9d1e2c3b4a5968770a1b2c/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "15",
+      "name": "download - highres (animation intent)",
+      "descr": "On an export (animation) intent, highres keeps the true original /assets/grafx/assets/:id/content so export fidelity is preserved (completes the intent x preview-type matrix alongside the print case)",
+      "method": "download",
+      "arguments": {
+        "id": "69de58c9bb8c4c6895418fa0",
+        "download_type": "highres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/grafx/assets/69de58c9bb8c4c6895418fa0/content",
+            "method": "GET",
+            "count": 1
           }
         ]
       }
