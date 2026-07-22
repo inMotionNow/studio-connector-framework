@@ -58,6 +58,12 @@ interface ConnectorSearchResponse {
 const SUPPORTED_FILE_FORMATS = ['eps', 'jpg', 'jpeg', 'pdf', 'png', 'psd', 'tif', 'tiff', 'ai'];
 const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.toUpperCase()]);
 
+// GraFx expects PNG/JPEG for on-screen (web) display. Assets already in these formats are
+// served as their original bytes; any other supported type (EPS/PDF/PSD/TIFF/AI) is served
+// as the DAM's rasterized `hrpreview` twin so the canvas can decode it. Matched case-insensitively
+// — the DAM stores `extension` as a case-sensitive keyword, so `.JPG`/`.Png` must be lower-cased first.
+const WEB_NATIVE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg']);
+
 // ─── Connector Implementation ─────────────────────────────────────────────────
 
 export default class LythoMediaConnector implements Media.MediaConnector {
@@ -201,11 +207,23 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         variant = 'hrpreview';
         break;
       case 'highres':
-      case 'fullres':
-        // On-screen canvas (web intent) can't decode raw non-raster originals (PSD/EPS/AI/TIFF).
-        // Serve the DAM's rasterized hi-res twin for display; keep the original for print/animation
-        // so the export pipeline preserves vector fidelity (e.g. AI) and full resolution.
+        // Loaded into editor frames for on-screen display. GraFx expects a decodable raster
+        // (PNG/JPEG) here for every file type — it has no "serve original" carve-out for highres —
+        // so web serves the rasterized twin. Print/animation keep the original (revisited in OCD-139).
         variant = intent === 'web' ? 'hrpreview' : 'content';
+        break;
+      case 'fullres':
+        if (intent === 'web') {
+          // Web fullres: serve PNG/JPEG originals as-is; convert anything else to the rasterized
+          // twin so the canvas can decode it. download() isn't handed the file type, so look it up
+          // — one extra metadata call (KISS; revisit if it ever proves to be a hot path).
+          const ext = await this._getExtension(id);
+          variant = WEB_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'hrpreview';
+        } else {
+          // Print/animation keep the true original for full resolution / vector fidelity.
+          // OCD-139 will extend fullres conversion (incl. print→PDF wrapping) to these intents.
+          variant = 'content';
+        }
         break;
       // 'original' → full-resolution original bytes
       default:
@@ -253,6 +271,25 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       return '';
     }
     return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  }
+
+  // Resolve an asset's file extension (lower-cased) for download-variant routing. download() is
+  // handed only the id, so the extension — needed to decide PNG/JPEG-vs-convert for web fullres —
+  // is read from the metadata endpoint. Same `/assets/assets/{id}` read that detail() performs.
+  private async _getExtension(id: string): Promise<string> {
+    const baseUrl = this._getBaseUrl();
+    const result = await this.runtime.fetch(
+      `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
+      { method: 'GET' }
+    );
+    if (!result.ok) {
+      throw new ConnectorHttpError(
+        result.status,
+        `Lytho: Asset lookup failed ${result.status} ${result.statusText}`
+      );
+    }
+    const asset = JSON.parse(result.text) as LythoAsset;
+    return (asset.extension ?? '').toLowerCase();
   }
 
   private _searchHitToMedia(hit: ConnectorSearchHit): Media.Media {
