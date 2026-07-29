@@ -199,6 +199,37 @@ Verify: in Studio, add a media variable sourced from `<connector-name>`, open th
 
 ---
 
+## Visibility window filtering (OCD-130)
+
+When browsing for assets to add to a template, users should only see assets currently inside their
+Lytho DAM **visibility window** (`visibleTimeFrameStart`/`visibleTimeFrameEnd`) — matching what the
+DAM itself shows.
+
+**This connector sends nothing for it.** Unlike file-type filtering (OCD-108, the `extensions` field
+in `query()`'s search body), visibility enforcement needed no connector change at all: `query()`
+runs through the authenticated search path with the Studio user's own bearer token, and that path
+already applies the visibility filter server-side, based on the caller's roles.
+
+**It is role-gated, mirroring the DAM.** A user holding `VIEW_ASSETS_VISIBILITY` or
+`VIEW_EMBARGO_ASSETS` still sees embargoed assets through this connector, exactly as they would in
+the DAM UI. This was a deliberate choice for OCD-130 (match the DAM) rather than forcing the filter
+on unconditionally for every caller regardless of role.
+
+**Already-placed assets are not protected.** If an asset already used in a template falls outside
+its visibility window later, `detail()` and the `query()` ObjectID intercept (both call
+`GET /assets/assets/{id}`) start failing with **HTTP 400**, since that endpoint enforces the same
+role-gated check. This is accepted behaviour for OCD-130 — the ticket scopes visibility filtering to
+searching for *new* assets, not ones already placed — but it means an existing template can start
+throwing errors on an asset it already references once that asset's window closes.
+
+**Not covered by `tests.json`.** As with OCD-108, the `connector-cli` test harness only matches
+request URL, method, and call count (`src/connector-cli/src/commands/test.ts`) and never inspects a
+request body — and there is no body to inspect here regardless, since the connector doesn't send a
+visibility-related field. The harness also never reaches the search/assets services, so it cannot
+observe server-side filtering either way. Coverage for this behaviour lives in
+`AssetSearchBuilderUnitTest`/`AssetSearchControllerUnitTest` (`dam-service-assets`) and
+`ConnectorSearchControllerTest` (`dam-service-search`).
+
 ## Testing
 
 ```bash
