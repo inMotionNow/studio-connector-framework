@@ -199,6 +199,28 @@ Verify: in Studio, add a media variable sourced from `<connector-name>`, open th
 
 ---
 
+## Visibility window filtering
+
+When browsing for assets to add to a template, users should only see assets currently inside their
+Lytho DAM **visibility window** (`visibleTimeFrameStart`/`visibleTimeFrameEnd`) - matching what the
+DAM itself shows during search.
+
+**This connector does not send any parameters specific to search.** Unlike file-type filtering (the
+`extensions` field in `query()`'s search body), visibility enforcement: `query()` runs through the
+authenticated search path with the Studio user's own bearer token, and that path already applies the
+visibility filter server-side, based on the caller's roles.
+
+**It is role-gated, mirroring the DAM.** A user holding `VIEW_ASSETS_VISIBILITY` or
+`VIEW_EMBARGO_ASSETS` still sees embargoed assets through this connector, exactly as they would in
+the DAM UI.
+
+**Already-placed assets are not protected.** If an asset already used in a template falls outside
+its visibility window later, `detail()` and the `query()` ObjectID intercept (both call
+`GET /assets/assets/{id}`) start failing with **HTTP 400**, since that endpoint enforces the same
+role-gated check. This is accepted behavior for visibility filtering to searching for *new* assets.
+However it means an existing template can start throwing errors on an asset it already references
+once that asset's window closes.
+
 ## Testing
 
 ```bash
