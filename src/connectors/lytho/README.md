@@ -221,6 +221,35 @@ role-gated check. This is accepted behavior for visibility filtering to searchin
 However it means an existing template can start throwing errors on an asset it already references
 once that asset's window closes.
 
+## Publish window filtering
+
+When browsing for assets to add to a template, users should also only see assets currently inside
+their Lytho DAM **publish window** (`useTimeFrameStart`/`useTimeFrameEnd`): expired and
+not-yet-published assets are never offered.
+
+**This connector likewise sends no parameter for it.** As with visibility, enforcement is
+server-side, in `ConnectorSearchController` (dam-service-search), which sets
+`onlyAvailableForDownload(true)` on every connector search.
+
+**It is not role-gated, and this is the one place the connector is deliberately stricter than the
+DAM.** Unlike the visibility window, the publish window has no bypass role: it applies to every
+user, admins included. The DAM's own web search does not filter on it at all and will list an
+expired asset, blocking only the download. The connector matches the other Lytho integration
+pickers (Adobe, Office, Sitecore, Drupal, WordPress, Divvy) rather than the DAM UI here, because an
+asset placed into a CHILI template is downloaded rather than linked, so it cannot be retracted once
+its window closes.
+
+**Already-placed assets are not protected, and unlike visibility there is no downstream backstop
+either.** This filter applies to search results only. Neither of the connector's per-asset paths
+rejects an expired asset: `/assets/assets/{id}` (used by `detail()`, the `query()` ObjectID
+intercept, and extension lookup) runs the *view* check, which enforces the visibility window but
+not the publish window, and the `/assets/grafx/...` byte-download endpoints gate on the
+`VIEW_ASSETS`/`DOWNLOAD_ASSETS` authorities without a per-asset publish check. So where an
+out-of-visibility asset makes `detail()` start failing with HTTP 400, an out-of-publish-range asset
+simply keeps working once it is already referenced by a template. That matches the ticket's stated
+scope (OCD-117 covers searching for *new* assets; assets already downloaded into a template are
+explicitly out of scope), but it is worth knowing the two windows behave differently here.
+
 ## Testing
 
 ```bash
