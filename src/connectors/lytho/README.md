@@ -199,40 +199,22 @@ Verify: in Studio, add a media variable sourced from `<connector-name>`, open th
 
 ---
 
-## Visibility window filtering (OCD-130)
+## Visibility window filtering
 
 When browsing for assets to add to a template, users should only see assets currently inside their
-Lytho DAM **visibility window** (`visibleTimeFrameStart`/`visibleTimeFrameEnd`) — matching what the
-DAM itself shows.
+Lytho DAM **visibility window** (`visibleTimeFrameStart`/`visibleTimeFrameEnd`) - matching what the
+DAM itself shows during search.
 
-**This connector sends nothing for it.** Unlike file-type filtering (OCD-108, the `extensions` field
-in `query()`'s search body), visibility enforcement needed no connector change at all: `query()`
-runs through the authenticated search path with the Studio user's own bearer token, and that path
-already applies the visibility filter server-side, based on the caller's roles.
+**This connector does not send any parameters specific to search.** Unlike file-type filtering (the `extensions` field in `query()`'s search body), visibility enforcement: `query()` runs through the authenticated search path with the Studio user's own bearer token, and that path already applies the visibility filter server-side, based on the caller's roles.
 
 **It is role-gated, mirroring the DAM.** A user holding `VIEW_ASSETS_VISIBILITY` or
 `VIEW_EMBARGO_ASSETS` still sees embargoed assets through this connector, exactly as they would in
-the DAM UI. This was a deliberate choice for OCD-130 (match the DAM) rather than forcing the filter
-on unconditionally for every caller regardless of role.
+the DAM UI.
 
 **Already-placed assets are not protected.** If an asset already used in a template falls outside
 its visibility window later, `detail()` and the `query()` ObjectID intercept (both call
 `GET /assets/assets/{id}`) start failing with **HTTP 400**, since that endpoint enforces the same
-role-gated check. This is accepted behavior for OCD-130 — the ticket scopes visibility filtering to
-searching for *new* assets, not ones already placed — but it means an existing template can start
-throwing errors on an asset it already references once that asset's window closes.
-
-**Not covered by `tests.json`.** As with OCD-108, a `fetch` assert in the `connector-cli` test
-harness only matches on request URL, method, and call count
-(`src/connector-cli/src/commands/test.ts`); it never inspects a request body, and there is no body to
-inspect here regardless, since the connector doesn't send a visibility-related field. Every `query()`
-and `detail()` assert in `tests.json` also supplies a canned `response`, so those calls are served
-from the test file and never reach the search or assets services, leaving nothing server-side for the
-harness to observe. (An assert with no `response` does fall through to a real `fetch`, but only the
-`download()` asserts are written that way, and `download()` is not a path visibility filtering
-applies to.) Coverage for this behavior lives in
-`AssetSearchBuilderUnitTest`/`AssetSearchControllerUnitTest` (`dam-service-assets`) and
-`ConnectorSearchControllerTest` (`dam-service-search`).
+role-gated check. This is accepted behavior for visibility filtering to searching for *new* assets. However it means an existing template can start throwing errors on an asset it already references once that asset's window closes.
 
 ## Testing
 
