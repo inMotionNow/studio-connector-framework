@@ -571,7 +571,7 @@
     {
       "id": "19",
       "name": "download - fullres (print intent, TIFF)",
-      "descr": "TIFF is on the denylist under both its extensions (tif and tiff) and routes to the PDF rendition on fullres/print. Covers the third denylist member.",
+      "descr": "A .tiff asset routes to the PDF rendition on fullres/print. The denylist carries the two TIFF spellings as separate members, so this case covers only .tiff — the shorter .tif spelling is covered by the next case.",
       "method": "download",
       "arguments": {
         "id": "6b2c3d4e5f60718293a4b5c6",
@@ -601,6 +601,37 @@
     },
     {
       "id": "20",
+      "name": "download - fullres (print intent, TIF short spelling)",
+      "descr": "The denylist carries tif and tiff as two separate members, so the short spelling needs its own case: with only a .tiff fixture, removing tif from the set left all tests passing. Routes to the PDF rendition on fullres/print exactly as .tiff does.",
+      "method": "download",
+      "arguments": {
+        "id": "6e5f60718293a4b5c6d7e8f9",
+        "download_type": "fullres",
+        "download_intent": "print",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6e5f60718293a4b5c6d7e8f9",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6e5f60718293a4b5c6d7e8f9", "name": "Short Spelling Scan", "extension": "tif", "fileType": "image/tiff" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6e5f60718293a4b5c6d7e8f9/pdf",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "21",
       "name": "download - highres (print intent, EPS)",
       "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. If it ever does, a denylisted type must not be handed the raw original: it routes to the rasterized twin /assets/grafx/assets/:id/hrpreview.",
       "method": "download",
@@ -631,7 +662,7 @@
       }
     },
     {
-      "id": "21",
+      "id": "22",
       "name": "download - fullres (print intent, AI is not rerouted)",
       "descr": "An .ai file is internally %PDF and exports correctly through CHILI today, so it is deliberately absent from the denylist and keeps /assets/grafx/assets/:id/content — even though a literal reading of CHILI's animation contract would include it. If this ever routes to /pdf, that exclusion has been undone by accident.",
       "method": "download",
@@ -662,7 +693,7 @@
       }
     },
     {
-      "id": "22",
+      "id": "23",
       "name": "download - fullres (print intent, uppercase EPS extension)",
       "descr": "Extensions are stored case-sensitively, so an asset ingested as .EPS reports extension 'EPS'. The denylist is matched case-insensitively, so it must still route to the PDF rendition. Guards against a regression that drops the lower-casing in _getExtension.",
       "method": "download",
