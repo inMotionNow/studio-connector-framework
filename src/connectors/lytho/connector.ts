@@ -64,6 +64,20 @@ const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.t
 // — the DAM stores `extension` as a case-sensitive keyword, so `.JPG`/`.Png` must be lower-cased first.
 const WEB_NATIVE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg']);
 
+// Types CHILI's export and animation pipelines cannot ingest as raw originals. Per CHILI's Media
+// Connector docs, `fullres`/`print` expects PNG/JPEG/PDF ("for asset types other than PNG / JPEG /
+// PDF one should serve the asset wrapped as a PDF file") and `fullres`/`animation` expects
+// PNG/JPEG. EPS/PSD/TIFF meet neither, so they reroute: print gets a PDF rendition converted from
+// the original, animation gets the rasterized `hrpreview` twin.
+//
+// PDF and AI are deliberately NOT listed. A literal reading of the animation contract would include
+// them, but both render correctly today through CHILI's own vector passthrough, and not regressing
+// them outranks the letter of the docs. Revisit only with evidence of a real failure.
+//
+// Matched case-insensitively: `extension` is stored as a case-sensitive value, so `.EPS` and `.Tif`
+// must be lower-cased before lookup.
+const EXPORT_INCOMPATIBLE_EXTENSIONS = new Set(['eps', 'psd', 'tif', 'tiff']);
+
 // ─── Connector Implementation ─────────────────────────────────────────────────
 
 export default class LythoMediaConnector implements Media.MediaConnector {
@@ -206,25 +220,47 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       case 'mediumres':
         variant = 'hrpreview';
         break;
-      case 'highres':
-        // Loaded into editor frames for on-screen display. GraFx expects a decodable raster
-        // (PNG/JPEG) here for every file type — it has no "serve original" carve-out for highres —
-        // so web serves the rasterized twin. Print/animation keep the original (revisited in OCD-139).
-        variant = intent === 'web' ? 'hrpreview' : 'content';
-        break;
-      case 'fullres':
+      case 'highres': {
         if (intent === 'web') {
-          // Web fullres: serve PNG/JPEG originals as-is; convert anything else to the rasterized
-          // twin so the canvas can decode it. download() isn't handed the file type, so look it up
-          // — one extra metadata call (KISS; revisit if it ever proves to be a hot path).
-          const ext = await this._getExtension(id);
+          // Loaded into editor frames for on-screen display. GraFx expects a decodable raster
+          // (PNG/JPEG) here for every file type — it has no "serve original" carve-out — so web
+          // always serves the rasterized twin, no type lookup needed.
+          variant = 'hrpreview';
+          break;
+        }
+        // print / animation. The contract asks for a high-quality image, but routing *every* type
+        // here would downscale a 4000px JPEG that exports correctly today, so stay type-aware:
+        // only the types CHILI cannot ingest are rerouted.
+        //
+        // DEFENSIVE. Studio has not been observed requesting `highres` on any intent — the display
+        // path uses `mediumres`/`web`. These branches cost nothing and the contract permits the
+        // tier, but the behaviour is unobserved rather than confirmed.
+        const ext = await this._getExtension(id);
+        variant = EXPORT_INCOMPATIBLE_EXTENSIONS.has(ext) ? 'hrpreview' : 'content';
+        break;
+      }
+      case 'fullres': {
+        // download() isn't handed the file type, so look it up — one extra metadata call per
+        // fullres download. Accepted cost; revisit only if this ever proves to be a hot path.
+        const ext = await this._getExtension(id);
+        if (intent === 'web') {
+          // Serve PNG/JPEG originals as-is; anything else becomes the rasterized twin so the
+          // canvas can decode it.
           variant = WEB_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'hrpreview';
-        } else {
-          // Print/animation keep the true original for full resolution / vector fidelity.
-          // OCD-139 will extend fullres conversion (incl. print→PDF wrapping) to these intents.
+        } else if (!EXPORT_INCOMPATIBLE_EXTENSIONS.has(ext)) {
+          // png/jpg/pdf/ai already export and animate correctly as their original bytes.
           variant = 'content';
+        } else if (intent === 'print') {
+          // CHILI's PDF export engine ingests only PNG/JPEG/PDF. Serve the DAM's on-demand PDF
+          // rendition. If conversion fails the DAM degrades to raster server-side and still
+          // returns 200 — there is nothing for the connector to retry or detect.
+          variant = 'pdf';
+        } else {
+          // animation: the contract wants PNG/JPEG, and `hrpreview` is exactly that.
+          variant = 'hrpreview';
         }
         break;
+      }
       // 'original' → full-resolution original bytes
       default:
         variant = 'content';
