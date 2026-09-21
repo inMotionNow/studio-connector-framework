@@ -725,6 +725,37 @@
     },
     {
       "id": "24",
+      "name": "download - highres (animation intent, EPS)",
+      "descr": "DEFENSIVE, and a tripwire rather than added detection: print and animation currently share a single highres branch with no intent distinction, so this case cannot fail independently of the print case above - any change breaking one breaks both. It exists so the animation path stays guarded if those branches ever diverge. Routes a denylisted type to the rasterized twin /assets/grafx/assets/:id/hrpreview rather than the raw original.",
+      "method": "download",
+      "arguments": {
+        "id": "5f9d1e2c3b4a5968770a1b2c",
+        "download_type": "highres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/5f9d1e2c3b4a5968770a1b2c",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/5f9d1e2c3b4a5968770a1b2c/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "25",
       "name": "download - fullres (print intent, AI is not rerouted)",
       "descr": "An .ai file is internally %PDF and exports correctly through CHILI today, so it is deliberately absent from the denylist and keeps /assets/grafx/assets/:id/content — even though a literal reading of CHILI's animation contract would include it. If this ever routes to /pdf, that exclusion has been undone by accident.",
       "method": "download",
@@ -755,7 +786,7 @@
       }
     },
     {
-      "id": "25",
+      "id": "26",
       "name": "download - fullres (print intent, uppercase EPS extension)",
       "descr": "Extensions are stored case-sensitively, so an asset ingested as .EPS reports extension 'EPS'. The denylist is matched case-insensitively, so it must still route to the PDF rendition. Guards against a regression that drops the lower-casing in _getExtension.",
       "method": "download",
