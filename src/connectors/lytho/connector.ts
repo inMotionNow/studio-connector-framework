@@ -64,19 +64,26 @@ const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.t
 // — the DAM stores `extension` as a case-sensitive keyword, so `.JPG`/`.Png` must be lower-cased first.
 const WEB_NATIVE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg']);
 
-// Types CHILI's export and animation pipelines cannot ingest as raw originals. Per CHILI's Media
-// Connector docs, `fullres`/`print` expects PNG/JPEG/PDF ("for asset types other than PNG / JPEG /
-// PDF one should serve the asset wrapped as a PDF file") and `fullres`/`animation` expects
-// PNG/JPEG. EPS/PSD/TIFF meet neither, so they reroute: print gets a PDF rendition converted from
-// the original, animation gets the rasterized `hrpreview` twin.
+// Per-intent allowlists of the types CHILI can ingest as raw original bytes. Anything outside an
+// intent's set is rerouted to a rendition that intent's pipeline can read. Per CHILI's Media
+// Connector docs, `fullres`/`print` takes PNG/JPEG/PDF ("for asset types other than PNG / JPEG /
+// PDF one should serve the asset wrapped as a PDF file") and `fullres`/`animation` takes PNG/JPEG
+// ("for asset types other than PNG / JPEG" serve it converted). So print reroutes to the DAM's
+// on-demand `pdf` rendition; animation reroutes to the rasterized `hrpreview` twin.
 //
-// PDF and AI are deliberately NOT listed. A literal reading of the animation contract would include
-// them, but both render correctly today through CHILI's own vector passthrough, and not regressing
-// them outranks the letter of the docs. Revisit only with evidence of a real failure.
+// AI and PDF are print-native but NOT animation-native. The PDF export engine ingests both
+// directly, while the animation renderer fails on their raw bytes, so the two intents keep
+// separate sets rather than sharing one list of types to reroute.
+//
+// An extension in neither set is treated as non-native and rerouted rather than passed through:
+// handing CHILI bytes it cannot decode is the failure this routing exists to prevent. That case is
+// only reachable for an asset referenced by id in an existing template — query() filters browse to
+// SUPPORTED_EXTENSIONS, so one cannot be picked.
 //
 // Matched case-insensitively: `extension` is stored as a case-sensitive value, so `.EPS` and `.Tif`
 // must be lower-cased before lookup.
-const EXPORT_INCOMPATIBLE_EXTENSIONS = new Set(['eps', 'psd', 'tif', 'tiff']);
+const PRINT_NATIVE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'pdf', 'ai']);
+const ANIMATION_NATIVE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg']);
 
 // ─── Connector Implementation ─────────────────────────────────────────────────
 
@@ -230,13 +237,17 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         }
         // print / animation. The contract asks for a high-quality image, but routing *every* type
         // here would downscale a 4000px JPEG that exports correctly today, so stay type-aware:
-        // only the types CHILI cannot ingest are rerouted.
+        // only the types that intent cannot ingest are rerouted. Same native sets as `fullres`,
+        // so a type never changes ingestibility between the two tiers — the tier only changes
+        // what the fallback is (`hrpreview` here; `fullres`/print falls back to `pdf`).
         //
         // DEFENSIVE. Studio has not been observed requesting `highres` on any intent — the display
         // path uses `mediumres`/`web`. These branches cost nothing and the contract permits the
         // tier, but the behaviour is unobserved rather than confirmed.
         const ext = await this._getExtension(id);
-        variant = EXPORT_INCOMPATIBLE_EXTENSIONS.has(ext) ? 'hrpreview' : 'content';
+        const nativeExtensions =
+          intent === 'print' ? PRINT_NATIVE_EXTENSIONS : ANIMATION_NATIVE_EXTENSIONS;
+        variant = nativeExtensions.has(ext) ? 'content' : 'hrpreview';
         break;
       }
       case 'fullres': {
@@ -247,21 +258,31 @@ export default class LythoMediaConnector implements Media.MediaConnector {
           // Serve PNG/JPEG originals as-is; anything else becomes the rasterized twin so the
           // canvas can decode it.
           variant = WEB_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'hrpreview';
-        } else if (!EXPORT_INCOMPATIBLE_EXTENSIONS.has(ext)) {
-          // png/jpg/pdf/ai already export and animate correctly as their original bytes.
-          variant = 'content';
         } else if (intent === 'print') {
-          // CHILI's PDF export engine ingests only PNG/JPEG/PDF. Serve the DAM's on-demand PDF
-          // rendition. If conversion fails the DAM degrades to raster server-side and still
-          // returns 200 — there is nothing for the connector to retry or detect.
-          variant = 'pdf';
+          // CHILI's PDF export engine ingests only PNG/JPEG/PDF, so PDF and AI pass through as
+          // their original bytes. Everything else gets the DAM's on-demand PDF rendition. If
+          // conversion fails the DAM degrades to raster server-side and still returns 200 — there
+          // is nothing for the connector to retry or detect.
+          variant = PRINT_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'pdf';
         } else {
-          // animation: the contract wants PNG/JPEG, and `hrpreview` is exactly that.
-          variant = 'hrpreview';
+          // animation: the contract wants PNG/JPEG, and `hrpreview` is exactly that. Note the
+          // narrower native set — PDF and AI pass through on print but not here, because the
+          // animation renderer fails on those raw bytes.
+          variant = ANIMATION_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'hrpreview';
         }
         break;
       }
-      // 'original' → full-resolution original bytes
+      // 'original' → full-resolution original bytes, every intent.
+      //
+      // Deliberately NOT intent-aware, unlike `highres`/`fullres` above. `original` means the
+      // original file; rerouting it to a rendition would make the one tier with an unambiguous
+      // contract lie about what it returns. The original-bytes variant is also the one the DAM
+      // gates on full per-asset download permission server-side, where the rendition variants
+      // only require view permission, so silently substituting a rendition would weaken that
+      // check as well.
+      //
+      // If Studio is ever seen requesting `original` for animation and failing on a PDF, that is
+      // a contract question to settle rather than another reroute to add here.
       default:
         variant = 'content';
         break;
