@@ -726,7 +726,7 @@
     {
       "id": "24",
       "name": "download - highres (animation intent, EPS)",
-      "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. print and animation take separate highres branches, so this case fails independently of the print case above rather than moving in lockstep with it. Routes a type outside the animation native set to the rasterized twin /assets/grafx/assets/:id/hrpreview rather than the raw original.",
+      "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. Routes a type outside the animation native set to the rasterized twin /assets/grafx/assets/:id/hrpreview rather than the raw original. Note this case still moves in lockstep with the print case above: .eps is outside BOTH native sets, so no change to the intent split can break one without the other. Case 32 is the one that actually pins the split.",
       "method": "download",
       "arguments": {
         "id": "5f9d1e2c3b4a5968770a1b2c",
@@ -965,6 +965,37 @@
           },
           {
             "url": "/assets/grafx/assets/6e5f60718293a4b5c6d7e8f9/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "32",
+      "name": "download - highres (print intent, AI)",
+      "descr": "The case that pins the highres intent split. Every other highres fixture is a type the print and animation native sets agree on, so collapsing the intent ternary to either set alone leaves them all passing. An .ai is print-native but not animation-native, so it is the cheapest input that tells the two branches apart: it must keep /assets/grafx/assets/:id/content here, while case 30 sends the same asset to the rasterized twin on animation. If this ever routes to /hrpreview, highres has stopped distinguishing the intents.",
+      "method": "download",
+      "arguments": {
+        "id": "6c3d4e5f60718293a4b5c6d7",
+        "download_type": "highres",
+        "download_intent": "print",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6c3d4e5f60718293a4b5c6d7",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/content",
             "method": "GET",
             "count": 1
           }
