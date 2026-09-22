@@ -1001,6 +1001,37 @@
           }
         ]
       }
+    },
+    {
+      "id": "33",
+      "name": "download - fullres (web intent, AI)",
+      "descr": "The case that tells the web and print native sets apart. They overlap on png/jpg/jpeg and both exclude eps, so every other web fixture routes identically through either one - an .ai is the cheapest input that separates them, because print serves it as original bytes while the canvas cannot decode it and needs the rasterized twin. Pins the on-screen display behaviour: if this ever routes to /content, the web branch has been pointed at the wrong set and vector art stops rendering on canvas.",
+      "method": "download",
+      "arguments": {
+        "id": "6c3d4e5f60718293a4b5c6d7",
+        "download_type": "fullres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6c3d4e5f60718293a4b5c6d7",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
     }
   ]
 }
