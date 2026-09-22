@@ -853,7 +853,7 @@
       "descr": "A .pdf is ingested natively by the PDF export engine but not by the animation renderer, so fullres/animation serves the rasterized twin rather than the original bytes. Covers the second of the two print-native-but-not-animation-native types, so dropping either ai or pdf from the animation set fails a case on its own.",
       "method": "download",
       "arguments": {
-        "id": "6e5f60718293a4b5c6d7e8f9",
+        "id": "6f60718293a4b5c6d7e8f9a0",
         "download_type": "fullres",
         "download_intent": "animation",
         "context": {}
@@ -861,17 +861,17 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/assets/6e5f60718293a4b5c6d7e8f9",
+            "url": "/assets/assets/6f60718293a4b5c6d7e8f9a0",
             "method": "GET",
             "count": 1,
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6e5f60718293a4b5c6d7e8f9", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
             }
           },
           {
-            "url": "/assets/grafx/assets/6e5f60718293a4b5c6d7e8f9/hrpreview",
+            "url": "/assets/grafx/assets/6f60718293a4b5c6d7e8f9a0/hrpreview",
             "method": "GET",
             "count": 1
           }
@@ -884,7 +884,7 @@
       "descr": "CHILI's PDF export engine ingests PDF natively, so a .pdf at fullres/print keeps /assets/grafx/assets/:id/content and no conversion is requested. Guards the print side of the split introduced for case 28: if this ever routes to /hrpreview, the animation rule has leaked into print.",
       "method": "download",
       "arguments": {
-        "id": "6e5f60718293a4b5c6d7e8f9",
+        "id": "6f60718293a4b5c6d7e8f9a0",
         "download_type": "fullres",
         "download_intent": "print",
         "context": {}
@@ -892,17 +892,17 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/assets/6e5f60718293a4b5c6d7e8f9",
+            "url": "/assets/assets/6f60718293a4b5c6d7e8f9a0",
             "method": "GET",
             "count": 1,
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6e5f60718293a4b5c6d7e8f9", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
             }
           },
           {
-            "url": "/assets/grafx/assets/6e5f60718293a4b5c6d7e8f9/content",
+            "url": "/assets/grafx/assets/6f60718293a4b5c6d7e8f9a0/content",
             "method": "GET",
             "count": 1
           }
@@ -946,7 +946,7 @@
       "descr": "DEFENSIVE - as case 30, for the other print-native-but-not-animation-native type. A .pdf at highres/animation routes to the rasterized twin, matching its fullres behaviour.",
       "method": "download",
       "arguments": {
-        "id": "6e5f60718293a4b5c6d7e8f9",
+        "id": "6f60718293a4b5c6d7e8f9a0",
         "download_type": "highres",
         "download_intent": "animation",
         "context": {}
@@ -954,17 +954,17 @@
       "asserts": {
         "fetch": [
           {
-            "url": "/assets/assets/6e5f60718293a4b5c6d7e8f9",
+            "url": "/assets/assets/6f60718293a4b5c6d7e8f9a0",
             "method": "GET",
             "count": 1,
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6e5f60718293a4b5c6d7e8f9", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
             }
           },
           {
-            "url": "/assets/grafx/assets/6e5f60718293a4b5c6d7e8f9/hrpreview",
+            "url": "/assets/grafx/assets/6f60718293a4b5c6d7e8f9a0/hrpreview",
             "method": "GET",
             "count": 1
           }
