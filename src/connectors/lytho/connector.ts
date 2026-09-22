@@ -276,10 +276,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       //
       // Deliberately NOT intent-aware, unlike `highres`/`fullres` above. `original` means the
       // original file; rerouting it to a rendition would make the one tier with an unambiguous
-      // contract lie about what it returns. The original-bytes variant is also the one the DAM
-      // gates on full per-asset download permission server-side, where the rendition variants
-      // only require view permission, so silently substituting a rendition would weaken that
-      // check as well.
+      // contract lie about what it returns.
       //
       // If Studio is ever seen requesting `original` for animation and failing on a PDF, that is
       // a contract question to settle rather than another reroute to add here.
