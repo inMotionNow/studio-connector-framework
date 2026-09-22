@@ -602,7 +602,7 @@
     {
       "id": "20",
       "name": "download - fullres (print intent, PSD)",
-      "descr": "PSD is on the same denylist as EPS and routes to the PDF rendition on fullres/print. Covers a second denylist member so the rule is not accidentally EPS-specific.",
+      "descr": "PSD sits outside the print native set, as EPS does, so it routes to the PDF rendition on fullres/print. Covers a second non-native type so the rule is not accidentally EPS-specific.",
       "method": "download",
       "arguments": {
         "id": "6a1b2c3d4e5f60718293a4b5",
@@ -633,7 +633,7 @@
     {
       "id": "21",
       "name": "download - fullres (print intent, TIFF)",
-      "descr": "A .tiff asset routes to the PDF rendition on fullres/print. The denylist carries the two TIFF spellings as separate members, so this case covers only .tiff — the shorter .tif spelling is covered by the next case.",
+      "descr": "A .tiff asset routes to the PDF rendition on fullres/print. The DAM stores the two TIFF spellings as distinct extension values, so this case covers only .tiff — the shorter .tif spelling is covered by the next case.",
       "method": "download",
       "arguments": {
         "id": "6b2c3d4e5f60718293a4b5c6",
@@ -664,7 +664,7 @@
     {
       "id": "22",
       "name": "download - fullres (print intent, TIF short spelling)",
-      "descr": "The denylist carries tif and tiff as two separate members, so the short spelling needs its own case: with only a .tiff fixture, removing tif from the set left all tests passing. Routes to the PDF rendition on fullres/print exactly as .tiff does.",
+      "descr": "The DAM stores tif and tiff as two distinct extension values, so the short spelling needs its own case rather than riding on the .tiff fixture. Routes to the PDF rendition on fullres/print exactly as .tiff does.",
       "method": "download",
       "arguments": {
         "id": "6e5f60718293a4b5c6d7e8f9",
@@ -695,7 +695,7 @@
     {
       "id": "23",
       "name": "download - highres (print intent, EPS)",
-      "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. If it ever does, a denylisted type must not be handed the raw original: it routes to the rasterized twin /assets/grafx/assets/:id/hrpreview.",
+      "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. If it ever does, a type outside the print native set must not be handed the raw original: it routes to the rasterized twin /assets/grafx/assets/:id/hrpreview.",
       "method": "download",
       "arguments": {
         "id": "5f9d1e2c3b4a5968770a1b2c",
@@ -726,7 +726,7 @@
     {
       "id": "24",
       "name": "download - highres (animation intent, EPS)",
-      "descr": "DEFENSIVE, and a tripwire rather than added detection: print and animation currently share a single highres branch with no intent distinction, so this case cannot fail independently of the print case above - any change breaking one breaks both. It exists so the animation path stays guarded if those branches ever diverge. Routes a denylisted type to the rasterized twin /assets/grafx/assets/:id/hrpreview rather than the raw original.",
+      "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. Routes a type outside the animation native set to the rasterized twin /assets/grafx/assets/:id/hrpreview rather than the raw original. Note this case still moves in lockstep with the print case above: .eps is outside BOTH native sets, so no change to the intent split can break one without the other. Case 32 is the one that actually pins the split.",
       "method": "download",
       "arguments": {
         "id": "5f9d1e2c3b4a5968770a1b2c",
@@ -757,7 +757,7 @@
     {
       "id": "25",
       "name": "download - fullres (print intent, AI is not rerouted)",
-      "descr": "An .ai file is internally %PDF and exports correctly through CHILI today, so it is deliberately absent from the denylist and keeps /assets/grafx/assets/:id/content — even though a literal reading of CHILI's animation contract would include it. If this ever routes to /pdf, that exclusion has been undone by accident.",
+      "descr": "An .ai file is internally %PDF and is ingested directly by CHILI's PDF export engine, so it stays on /assets/grafx/assets/:id/content for print and no conversion is requested. Contrast with case 27, where the same file type routes to the rasterized twin on animation. If this ever routes to /pdf, ai has been dropped from the print native set.",
       "method": "download",
       "arguments": {
         "id": "6c3d4e5f60718293a4b5c6d7",
@@ -788,7 +788,7 @@
     {
       "id": "26",
       "name": "download - fullres (print intent, uppercase EPS extension)",
-      "descr": "Extensions are stored case-sensitively, so an asset ingested as .EPS reports extension 'EPS'. The denylist is matched case-insensitively, so it must still route to the PDF rendition. Guards against a regression that drops the lower-casing in _getExtension.",
+      "descr": "Extensions are stored case-sensitively, so an asset ingested as .EPS reports extension 'EPS'. The native sets are matched case-insensitively, so it must still route to the PDF rendition. Guards against a regression that drops the lower-casing in _getExtension.",
       "method": "download",
       "arguments": {
         "id": "6d4e5f60718293a4b5c6d7e8",
@@ -810,6 +810,223 @@
           },
           {
             "url": "/assets/grafx/assets/6d4e5f60718293a4b5c6d7e8/pdf",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "27",
+      "name": "download - fullres (animation intent, AI)",
+      "descr": "An .ai file is internally %PDF and is ingested directly by the PDF export engine, so it passes through untouched on print - but the animation renderer fails on those same raw bytes, so fullres/animation serves the rasterized twin /assets/grafx/assets/:id/hrpreview. Pairs with case 25: the same file type takes a different variant on each intent, which is the reason print and animation carry separate native sets rather than one shared list.",
+      "method": "download",
+      "arguments": {
+        "id": "6c3d4e5f60718293a4b5c6d7",
+        "download_type": "fullres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6c3d4e5f60718293a4b5c6d7",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "28",
+      "name": "download - fullres (animation intent, PDF)",
+      "descr": "A .pdf is ingested natively by the PDF export engine but not by the animation renderer, so fullres/animation serves the rasterized twin rather than the original bytes. Covers the second of the two print-native-but-not-animation-native types, so dropping either ai or pdf from the animation set fails a case on its own.",
+      "method": "download",
+      "arguments": {
+        "id": "6f60718293a4b5c6d7e8f9a0",
+        "download_type": "fullres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6f60718293a4b5c6d7e8f9a0",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6f60718293a4b5c6d7e8f9a0/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "29",
+      "name": "download - fullres (print intent, PDF is not rerouted)",
+      "descr": "CHILI's PDF export engine ingests PDF natively, so a .pdf at fullres/print keeps /assets/grafx/assets/:id/content and no conversion is requested. Guards the print side of the split introduced for case 28: if this ever routes to /hrpreview, the animation rule has leaked into print.",
+      "method": "download",
+      "arguments": {
+        "id": "6f60718293a4b5c6d7e8f9a0",
+        "download_type": "fullres",
+        "download_intent": "print",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6f60718293a4b5c6d7e8f9a0",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6f60718293a4b5c6d7e8f9a0/content",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "30",
+      "name": "download - highres (animation intent, AI)",
+      "descr": "DEFENSIVE - Studio has not been observed requesting highres on any intent. highres and fullres share the same per-intent native sets, so an .ai routes to the rasterized twin here exactly as it does at fullres; only the fallback differs between the tiers. Fails independently of the print cases now that the two intents take separate highres branches.",
+      "method": "download",
+      "arguments": {
+        "id": "6c3d4e5f60718293a4b5c6d7",
+        "download_type": "highres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6c3d4e5f60718293a4b5c6d7",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "31",
+      "name": "download - highres (animation intent, PDF)",
+      "descr": "DEFENSIVE - as case 30, for the other print-native-but-not-animation-native type. A .pdf at highres/animation routes to the rasterized twin, matching its fullres behaviour.",
+      "method": "download",
+      "arguments": {
+        "id": "6f60718293a4b5c6d7e8f9a0",
+        "download_type": "highres",
+        "download_intent": "animation",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6f60718293a4b5c6d7e8f9a0",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6f60718293a4b5c6d7e8f9a0/hrpreview",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "32",
+      "name": "download - highres (print intent, AI)",
+      "descr": "The case that pins the highres intent split. Every other highres fixture is a type the print and animation native sets agree on, so collapsing the intent ternary to either set alone leaves them all passing. An .ai is print-native but not animation-native, so it is the cheapest input that tells the two branches apart: it must keep /assets/grafx/assets/:id/content here, while case 30 sends the same asset to the rasterized twin on animation. If this ever routes to /hrpreview, highres has stopped distinguishing the intents.",
+      "method": "download",
+      "arguments": {
+        "id": "6c3d4e5f60718293a4b5c6d7",
+        "download_type": "highres",
+        "download_intent": "print",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6c3d4e5f60718293a4b5c6d7",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/content",
+            "method": "GET",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "33",
+      "name": "download - fullres (web intent, AI)",
+      "descr": "The case that tells the web and print native sets apart. They overlap on png/jpg/jpeg and both exclude eps, so every other web fixture routes identically through either one - an .ai is the cheapest input that separates them, because print serves it as original bytes while the canvas cannot decode it and needs the rasterized twin. Pins the on-screen display behaviour: if this ever routes to /content, the web branch has been pointed at the wrong set and vector art stops rendering on canvas.",
+      "method": "download",
+      "arguments": {
+        "id": "6c3d4e5f60718293a4b5c6d7",
+        "download_type": "fullres",
+        "download_intent": "web",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/assets/6c3d4e5f60718293a4b5c6d7",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+            }
+          },
+          {
+            "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/hrpreview",
             "method": "GET",
             "count": 1
           }
