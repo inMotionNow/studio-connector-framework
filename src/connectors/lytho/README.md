@@ -29,7 +29,7 @@ The connector never sees the auth token — CHILI's runtime injects the `Authori
 - **Browser** — interactive browse/search. Configured as **`oAuth2AuthorizationCode`**: the Studio user logs into the connector's realm (Keycloak) and their **own** token is used, so results are filtered to the assets *that user* is permitted to see.
 - **Server** — GraFx's rendering/export server fetching assets during output (no user present). Configured as **`oAuth2ClientCredentials`** (service account).
 
-Connector calls route through a single `BASE_URL` (a proxy in DEV — see [Connectivity](#connectivity)). The gateway keys on the first path segment, so the connector calls `/search/...` (search service) and `/assets/...` (assets service).
+Connector calls route through a single `LYTHO_BASE_URL` (a proxy in DEV — see [Connectivity](#connectivity)). The gateway keys on the first path segment, so the connector calls `/search/...` (search service) and `/assets/...` (assets service).
 
 Keycloak client setup (flows, the required `tenant` claim mapper, service-account roles, redirect URIs) is documented here — **read it before configuring a realm**:
 **[Keycloak Client Setup — Lytho Media Connector (CHILI GraFx)](https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338)**
@@ -125,7 +125,7 @@ yarn connector-cli publish \
   -b <grafx-base> \
   -e <grafx-env> \
   -n "<connector-name>" \
-  -ro BASE_URL=<base-url> \
+  -ro LYTHO_BASE_URL=<base-url> \
   --proxyOption.allowedDomains "<allowed-domains>"
 ```
 
@@ -136,7 +136,7 @@ yarn connector-cli publish \
   -e <grafx-env> \
   -n "<connector-name>" \
   --connectorId <connector-id> \
-  -ro BASE_URL=<base-url> \
+  -ro LYTHO_BASE_URL=<base-url> \
   --proxyOption.allowedDomains "<allowed-domains>"
 ```
 
@@ -146,8 +146,10 @@ yarn connector-cli publish \
 | `-e` | `<grafx-env>` | CHILI GraFx environment ID |
 | `-n` | `"<connector-name>"` | Convention: `Lytho — <realm> (<env>)`. Always pass it |
 | `--connectorId` | `<connector-id>` | Omit on first publish; include to re-deploy |
-| `-ro BASE_URL` | `<base-url>` | All connector calls go through this — the DEV proxy, not the Lytho API directly |
+| `-ro LYTHO_BASE_URL` | `<base-url>` | All connector calls go through this — the DEV proxy, not the Lytho API directly |
 | `--proxyOption.allowedDomains` | `"<allowed-domains>"` | CHILI sandbox allowlist — the `<base-url>` domain |
+
+`LYTHO_BASE_URL` is also how Lytho's applications recognise this connector — keep the name unique to Lytho.
 
 ---
 
@@ -269,9 +271,9 @@ manual end-to-end testing through the connector against a live environment.
 
 ## Connectivity
 
-The connector calls whatever `BASE_URL` points at. In DEV the Lytho API isn't publicly reachable from CHILI's cloud, so `BASE_URL` points at a **proxy** (an AWS Lambda in `dam-service-chili`, `lambdas/lytho-proxy/`) that forwards allowlisted paths — with the caller's bearer token — to the DEV API host. Where the API is directly reachable, `BASE_URL` can point at it directly and the proxy drops out. Either way the connector code is unaffected.
+The connector calls whatever `LYTHO_BASE_URL` points at. In DEV the Lytho API isn't publicly reachable from CHILI's cloud, so `LYTHO_BASE_URL` points at a **proxy** (an AWS Lambda in `dam-service-chili`, `lambdas/lytho-proxy/`) that forwards allowlisted paths — with the caller's bearer token — to the DEV API host. Where the API is directly reachable, `LYTHO_BASE_URL` can point at it directly and the proxy drops out. Either way the connector code is unaffected.
 
-When `BASE_URL` is a proxy Function URL, `--proxyOption.allowedDomains` must match that host's domain; when it points at the API directly, match the API host's domain instead.
+When `LYTHO_BASE_URL` is a proxy Function URL, `--proxyOption.allowedDomains` must match that host's domain; when it points at the API directly, match the API host's domain instead.
 
 ---
 
