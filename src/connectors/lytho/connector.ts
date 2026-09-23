@@ -28,7 +28,7 @@ interface LythoAsset {
 }
 
 // Slim, connector-owned shape returned by POST /search/grafx/api/v1/search. Decoupled from Lytho's
-// internal search models (the connector is destined for CHILI's public repo).
+// internal search models.
 interface ConnectorSearchHit {
   id: string;
   name: string;
@@ -135,7 +135,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     }
 
     // Tenant is resolved server-side from the authenticated user (realm/token); the connector
-    // sends only the filters it uses. The full search request is built inside dam-service-search.
+    // sends only the filters it uses. The full search request is built server-side by the Lytho search API.
     const collectionId =
       options.collection && options.collection !== '/' ? options.collection : null;
 
