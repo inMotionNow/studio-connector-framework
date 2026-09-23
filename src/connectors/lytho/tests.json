@@ -1,7 +1,7 @@
 {
   "setup": {
     "runtime_options": {
-      "LYTHO_BASE_URL": "https://gcawifhrmwwmpw6mr2sco57p2a0txevm.lambda-url.us-east-1.on.aws"
+      "LYTHO_BASE_URL": "https://example-proxy.lambda-url.us-east-1.on.aws"
     }
   },
   "tests": [
