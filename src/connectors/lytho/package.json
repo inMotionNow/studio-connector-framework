@@ -11,7 +11,7 @@
     "connectorName": "Lytho",
     "type": "media",
     "options": {
-      "BASE_URL": null
+      "LYTHO_BASE_URL": null
     },
     "mappings": {},
     "supportedAuth": ["oAuth2AuthorizationCode", "oAuth2ClientCredentials"],

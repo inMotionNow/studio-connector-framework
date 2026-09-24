@@ -28,7 +28,7 @@ interface LythoAsset {
 }
 
 // Slim, connector-owned shape returned by POST /search/grafx/api/v1/search. Decoupled from Lytho's
-// internal search models (the connector is destined for CHILI's public repo).
+// internal search models.
 interface ConnectorSearchHit {
   id: string;
   name: string;
@@ -47,6 +47,8 @@ interface ConnectorSearchResponse {
   hits: ConnectorSearchHit[];
 }
 
+// Lytho's own asset picker for GraFx applies the same search constraints as this connector (these file
+// types, and the filters sent in query()). Changing them here requires the matching change on the Lytho side.
 // CHILI GraFx-supported asset file types (per docs.chiligrafx.com/GraFx-Media/overview/filetypes).
 // Sent with the search request to filter search/browse results to assets CHILI can use. This does
 // not constrain direct id lookups — detail() and the query() ObjectID intercept resolve a known
@@ -133,10 +135,12 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     }
 
     // Tenant is resolved server-side from the authenticated user (realm/token); the connector
-    // sends only the filters it uses. The full search request is built inside dam-service-search.
+    // sends only the filters it uses. The full search request is built server-side by the Lytho search API.
     const collectionId =
       options.collection && options.collection !== '/' ? options.collection : null;
 
+    // Search constraints sent here are mirrored by Lytho's own GraFx asset picker — see the note above
+    // SUPPORTED_FILE_FORMATS.
     const body = {
       terms,
       collectionId,
@@ -303,8 +307,8 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   }
 
   getConfigurationOptions(): Connector.ConnectorConfigValue[] | null {
-    // BASE_URL is a runtime option configured at deploy time — no per-instance
-    // configuration options are needed for this connector.
+    // LYTHO_BASE_URL is a runtime option configured at deploy time — no per-instance configuration
+    // options are needed. Do not add any: they surface as per-variable fields in CHILI's template designer.
     return null;
   }
 
@@ -320,7 +324,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   // ─── Private Helpers ──────────────────────────────────────────────────────
 
   private _getBaseUrl(): string {
-    const baseUrl = this.runtime.options['BASE_URL'];
+    // Named LYTHO_BASE_URL rather than the generic BASE_URL so Lytho's applications can recognise this
+    // connector by its option name. Keep the name unique to Lytho.
+    const baseUrl = this.runtime.options['LYTHO_BASE_URL'];
     if (typeof baseUrl !== 'string' || baseUrl.trim().length === 0) {
       return '';
     }
