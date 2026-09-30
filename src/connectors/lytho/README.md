@@ -6,7 +6,7 @@ A read-only [CHILI GraFx Studio media connector](https://docs.chili-publish.com/
 
 **Upload/write is out of scope** — this connector is read-only.
 
-> **Placeholders:** commands below use angle-bracket placeholders. Substitute the values for the realm/environment you're deploying to. The [Appendix](#appendix-illustrative-example--filling-in-the-placeholders) shows the *shape* of each value with illustrative examples; the real per-environment values live in the internal setup doc linked below.
+> **Placeholders:** commands below use angle-bracket placeholders. Substitute the values for the realm/environment you're deploying to. The [Appendix](#appendix-illustrative-example--filling-in-the-placeholders) shows the *shape* of each value with illustrative examples; real per-environment values are kept outside this repository.
 >
 > | Placeholder | Meaning |
 > |---|---|
@@ -29,10 +29,9 @@ The connector never sees the auth token — CHILI's runtime injects the `Authori
 - **Browser** — interactive browse/search. Configured as **`oAuth2AuthorizationCode`**: the Studio user logs into the connector's realm (Keycloak) and their **own** token is used, so results are filtered to the assets *that user* is permitted to see.
 - **Server** — GraFx's rendering/export server fetching assets during output (no user present). Configured as **`oAuth2ClientCredentials`** (service account).
 
-Connector calls route through a single `BASE_URL` (a proxy in DEV — see [Connectivity](#connectivity)). The gateway keys on the first path segment, so the connector calls `/search/...` (search service) and `/assets/...` (assets service).
+Connector calls route through a single `LYTHO_BASE_URL` (a proxy in DEV — see [Connectivity](#connectivity)). The gateway keys on the first path segment, so the connector calls `/search/...` (search service) and `/assets/...` (assets service).
 
-Keycloak client setup (flows, the required `tenant` claim mapper, service-account roles, redirect URIs) is documented here — **read it before configuring a realm**:
-**[Keycloak Client Setup — Lytho Media Connector (CHILI GraFx)](https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338)**
+The Keycloak client for each realm (flows, the required `tenant` claim mapper, service-account roles, redirect URIs) must be set up before the connector is configured — Lytho provides this setup.
 
 ---
 
@@ -54,7 +53,7 @@ Keycloak client setup (flows, the required `tenant` claim mapper, service-accoun
 - `@chili-publish/connector-cli` (in `devDependencies`)
 - Access to the target CHILI GraFx environment (`<grafx-env>`)
 - The target Keycloak realm and the `chili-media-connector` client secret
-- The Keycloak client configured per the [Confluence doc](https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338)
+- The Keycloak client configured for the target realm (see [How it works](#how-it-works-auth-model))
 
 ---
 
@@ -125,7 +124,7 @@ yarn connector-cli publish \
   -b <grafx-base> \
   -e <grafx-env> \
   -n "<connector-name>" \
-  -ro BASE_URL=<base-url> \
+  -ro LYTHO_BASE_URL=<base-url> \
   --proxyOption.allowedDomains "<allowed-domains>"
 ```
 
@@ -136,7 +135,7 @@ yarn connector-cli publish \
   -e <grafx-env> \
   -n "<connector-name>" \
   --connectorId <connector-id> \
-  -ro BASE_URL=<base-url> \
+  -ro LYTHO_BASE_URL=<base-url> \
   --proxyOption.allowedDomains "<allowed-domains>"
 ```
 
@@ -146,8 +145,10 @@ yarn connector-cli publish \
 | `-e` | `<grafx-env>` | CHILI GraFx environment ID |
 | `-n` | `"<connector-name>"` | Convention: `Lytho — <realm> (<env>)`. Always pass it |
 | `--connectorId` | `<connector-id>` | Omit on first publish; include to re-deploy |
-| `-ro BASE_URL` | `<base-url>` | All connector calls go through this — the DEV proxy, not the Lytho API directly |
+| `-ro LYTHO_BASE_URL` | `<base-url>` | All connector calls go through this — the DEV proxy, not the Lytho API directly |
 | `--proxyOption.allowedDomains` | `"<allowed-domains>"` | CHILI sandbox allowlist — the `<base-url>` domain |
+
+`LYTHO_BASE_URL` is also how Lytho's applications recognise this connector — keep the name unique to Lytho.
 
 ---
 
@@ -228,8 +229,7 @@ their Lytho DAM **publish window** (`useTimeFrameStart`/`useTimeFrameEnd`): expi
 not-yet-published assets are never offered.
 
 **This connector likewise sends no parameter for it.** As with visibility, enforcement is
-server-side, in `ConnectorSearchController` (dam-service-search), which sets
-`onlyAvailableForDownload(true)` on every connector search.
+server-side: the Lytho search API applies the publish-window filter to every connector search.
 
 **It is not role-gated, and this is the one place the connector is deliberately stricter than the
 DAM.** Unlike the visibility window, the publish window has no bypass role: it applies to every
@@ -239,16 +239,8 @@ pickers (Adobe, Office, Sitecore, Drupal, WordPress, Divvy) rather than the DAM 
 asset placed into a CHILI template is downloaded rather than linked, so it cannot be retracted once
 its window closes.
 
-**Already-placed assets are not protected, and unlike visibility there is no downstream backstop
-either.** This filter applies to search results only. Neither of the connector's per-asset paths
-rejects an expired asset: `/assets/assets/{id}` (used by `detail()`, the `query()` ObjectID
-intercept, and extension lookup) runs the *view* check, which enforces the visibility window but
-not the publish window, and the `/assets/grafx/...` byte-download endpoints gate on the
-`VIEW_ASSETS`/`DOWNLOAD_ASSETS` authorities without a per-asset publish check. So where an
-out-of-visibility asset makes `detail()` start failing with HTTP 400, an out-of-publish-range asset
-simply keeps working once it is already referenced by a template. That matches the ticket's stated
-scope (OCD-117 covers searching for *new* assets; assets already downloaded into a template are
-explicitly out of scope), but it is worth knowing the two windows behave differently here.
+**This filter applies to search results only.** An asset that is already placed in a template keeps
+working after its publish window closes; the filter governs which assets can be newly found and added.
 
 ## Testing
 
@@ -258,7 +250,7 @@ yarn test
 ```
 
 **Known coverage gap (extension filtering):** `query()` sends the CHILI-supported `extensions`
-list in its search body so the DAM only returns assets CHILI can use (OCD-108). The `connector-cli`
+list in its search body so the DAM only returns assets CHILI can use. The `connector-cli`
 test harness (`tests.json`) asserts only the request **URL**, **method**, and call **count** and
 returns a canned response — it does **not** inspect the outgoing request **body**. So there is no
 automated assertion here that the `extensions` list is actually sent. The adjacent checks do not
@@ -269,16 +261,15 @@ manual end-to-end testing through the connector against a live environment.
 
 ## Connectivity
 
-The connector calls whatever `BASE_URL` points at. In DEV the Lytho API isn't publicly reachable from CHILI's cloud, so `BASE_URL` points at a **proxy** (an AWS Lambda in `dam-service-chili`, `lambdas/lytho-proxy/`) that forwards allowlisted paths — with the caller's bearer token — to the DEV API host. Where the API is directly reachable, `BASE_URL` can point at it directly and the proxy drops out. Either way the connector code is unaffected.
+The connector calls whatever `LYTHO_BASE_URL` points at. Where the Lytho API isn't directly reachable from CHILI's cloud, `LYTHO_BASE_URL` points at a **proxy** that forwards allowed paths — with the caller's bearer token — to the API host. Where the API is directly reachable, `LYTHO_BASE_URL` can point at it directly and the proxy drops out. Either way the connector code is unaffected.
 
-When `BASE_URL` is a proxy Function URL, `--proxyOption.allowedDomains` must match that host's domain; when it points at the API directly, match the API host's domain instead.
+When `LYTHO_BASE_URL` is a proxy Function URL, `--proxyOption.allowedDomains` must match that host's domain; when it points at the API directly, match the API host's domain instead.
 
 ---
 
 ## Appendix: illustrative example — filling in the placeholders
 
-Fabricated values showing the *shape* of each placeholder. **These are illustrative only — not a real deployment; do not use them.** For the real per-environment values (dev-us / `dragon` and any other onboarded realm), see the internal setup doc:
-**[Keycloak Client Setup — Lytho Media Connector (CHILI GraFx)](https://lytho.atlassian.net/wiki/spaces/DEV/pages/29707534338)** → the "Per-environment values" table.
+Fabricated values showing the *shape* of each placeholder. **These are illustrative only — not a real deployment; do not use them.** Real per-environment values are kept outside this repository.
 
 | Placeholder | Example (illustrative only) |
 |---|---|
@@ -293,4 +284,4 @@ Fabricated values showing the *shape* of each placeholder. **These are illustrat
 | `<auth-dir>` | `/path/to/your/auth-data-files` (outside the repo) |
 | Keycloak client | `chili-media-connector` |
 
-> Every realm/environment follows the same steps with its own connector ID, proxy URL, realm, and Keycloak host. The real values live in the internal setup doc linked above — this repo keeps only illustrative placeholders so nothing environment-specific ships if the connector is published upstream.
+> Every realm/environment follows the same steps with its own connector ID, proxy URL, realm, and Keycloak host. This repository keeps only illustrative placeholders; nothing environment-specific is stored here.
