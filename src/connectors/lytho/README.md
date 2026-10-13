@@ -217,8 +217,9 @@ the DAM UI.
 
 **Already-placed assets are not protected.** If an asset already used in a template falls outside
 its visibility window later, `detail()` and the `query()` ObjectID intercept (both call
-`GET /assets/assets/{id}`) start failing with **HTTP 400**, since that endpoint enforces the same
-role-gated check. This is accepted behavior for visibility filtering to searching for *new* assets.
+`GET /assets/grafx/assets/{id}`) start failing with **HTTP 400**, since that endpoint enforces the same
+role-gated check. The same endpoint also answers for an image a user uploaded to a publication, which is
+not a DAM asset, so the assets service must be deployed with it before this connector is republished. This is accepted behavior for visibility filtering to searching for *new* assets.
 However it means an existing template can start throwing errors on an asset it already references
 once that asset's window closes.
 

@@ -110,7 +110,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // Intercept this pattern and fetch the asset directly via the detail endpoint.
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
-        `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
+        `${baseUrl}/assets/grafx/assets/${encodeURIComponent(terms.trim())}`,
         { method: 'GET' }
       );
       if (!result.ok) {
@@ -182,11 +182,11 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   ): Promise<Media.MediaDetail> {
     const baseUrl = this._getBaseUrl();
 
-    // Metadata read uses the pre-existing `/assets/assets/{id}` endpoint. This is deliberately
-    // a different path shape from the `/assets/grafx/...` byte-download endpoint (see download());
-    // the two are not meant to match.
+    // Metadata read uses the `/assets/grafx/assets/{id}` endpoint, the same family as the byte downloads
+    // (see download()). It answers for a DAM asset and for an image a user uploaded to a publication, which
+    // is not a DAM asset, so the core `/assets/assets/{id}` endpoint cannot be used here.
     const result = await this.runtime.fetch(
-      `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
+      `${baseUrl}/assets/grafx/assets/${encodeURIComponent(id)}`,
       { method: 'GET' }
     );
 
@@ -291,9 +291,8 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
     // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
     // connector to stream asset bytes directly and bypass Lytho's signed-S3 download links.
-    // Metadata reads (detail, and the query() ObjectID lookup) use the older, pre-existing
-    // `/assets/assets/{id}` endpoint. The two path families serve different purposes and are
-    // NOT meant to match.
+    // Metadata reads (detail, and the query() ObjectID lookup) use `/assets/grafx/assets/{id}`, the same
+    // family without a variant, so they also work for images uploaded to a publication.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
     const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET' });
@@ -335,11 +334,11 @@ export default class LythoMediaConnector implements Media.MediaConnector {
 
   // Resolve an asset's file extension (lower-cased) for download-variant routing. download() is
   // handed only the id, so the extension — needed to decide PNG/JPEG-vs-convert for web fullres —
-  // is read from the metadata endpoint. Same `/assets/assets/{id}` read that detail() performs.
+  // is read from the metadata endpoint. Same `/assets/grafx/assets/{id}` read that detail() performs.
   private async _getExtension(id: string): Promise<string> {
     const baseUrl = this._getBaseUrl();
     const result = await this.runtime.fetch(
-      `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
+      `${baseUrl}/assets/grafx/assets/${encodeURIComponent(id)}`,
       { method: 'GET' }
     );
     if (!result.ok) {
