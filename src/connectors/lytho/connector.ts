@@ -54,8 +54,21 @@ interface ConnectorSearchResponse {
 // The search API matches extensions case-sensitively, so each format is listed in both lower- and
 // upper-case; `jpeg`/`tiff` are the `jpg`/`tif` synonyms.
 // NOTE: mixed-case extensions (e.g. `.Tif`) are still missed.
-const SUPPORTED_FILE_FORMATS = ['eps', 'jpg', 'jpeg', 'pdf', 'png', 'psd', 'tif', 'tiff', 'ai'];
-const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.toUpperCase()]);
+const SUPPORTED_FILE_FORMATS = [
+  'eps',
+  'jpg',
+  'jpeg',
+  'pdf',
+  'png',
+  'psd',
+  'tif',
+  'tiff',
+  'ai',
+];
+const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [
+  ext,
+  ext.toUpperCase(),
+]);
 
 // GraFx expects PNG/JPEG for on-screen (web) display. Assets already in these formats are
 // served as their original bytes; any other supported type (EPS/PDF/PSD/TIFF/AI) is served
@@ -111,22 +124,27 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         { method: 'GET' }
       );
       if (!result.ok) {
-        throw new ConnectorHttpError(result.status, `Lytho: Asset lookup failed ${result.status} ${result.statusText}`);
+        throw new ConnectorHttpError(
+          result.status,
+          `Lytho: Asset lookup failed ${result.status} ${result.statusText}`
+        );
       }
       const asset = JSON.parse(result.text) as LythoAsset;
       return {
         pageSize: 1,
-        data: [{
-          id: asset.id,
-          name: asset.name,
-          relativePath: '/' + asset.id,
-          type: 0,
-          extension: asset.extension ?? '',
-          metaData: {
-            fileType: asset.fileType ?? '',
-            tags: asset.tags?.map((t) => t.name).join(', ') ?? '',
+        data: [
+          {
+            id: asset.id,
+            name: asset.name,
+            relativePath: '/' + asset.id,
+            type: 0,
+            extension: asset.extension ?? '',
+            metaData: {
+              fileType: asset.fileType ?? '',
+              tags: asset.tags?.map((t) => t.name).join(', ') ?? '',
+            },
           },
-        }],
+        ],
         links: { nextPage: '' },
       };
     }
@@ -134,7 +152,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // Tenant is resolved server-side from the authenticated user (realm/token); the connector
     // sends only the filters it uses. The full search request is built server-side by the Lytho search API.
     const collectionId =
-      options.collection && options.collection !== '/' ? options.collection : null;
+      options.collection && options.collection !== '/'
+        ? options.collection
+        : null;
 
     const body = {
       terms,
@@ -144,11 +164,14 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       extensions: SUPPORTED_EXTENSIONS,
     };
 
-    const result = await this.runtime.fetch(`${baseUrl}/search/grafx/api/v1/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const result = await this.runtime.fetch(
+      `${baseUrl}/search/grafx/api/v1/search`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }
+    );
 
     if (!result.ok) {
       throw new ConnectorHttpError(
@@ -245,7 +268,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         // tier, but the behaviour is unobserved rather than confirmed.
         const ext = await this._getExtension(id);
         const nativeExtensions =
-          intent === 'print' ? PRINT_NATIVE_EXTENSIONS : ANIMATION_NATIVE_EXTENSIONS;
+          intent === 'print'
+            ? PRINT_NATIVE_EXTENSIONS
+            : ANIMATION_NATIVE_EXTENSIONS;
         variant = nativeExtensions.has(ext) ? 'content' : 'hrpreview';
         break;
       }
@@ -267,7 +292,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
           // animation: the contract wants PNG/JPEG, and `hrpreview` is exactly that. Note the
           // narrower native set — PDF and AI pass through on print but not here, because the
           // animation renderer fails on those raw bytes.
-          variant = ANIMATION_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'hrpreview';
+          variant = ANIMATION_NATIVE_EXTENSIONS.has(ext)
+            ? 'content'
+            : 'hrpreview';
         }
         break;
       }
@@ -292,7 +319,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // NOT meant to match.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
-    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET' });
+    const result = await this.runtime.fetch(`${baseUrl}${path}`, {
+      method: 'GET',
+    });
     if (!result.ok) {
       throw new ConnectorHttpError(
         result.status,
