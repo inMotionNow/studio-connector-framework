@@ -47,16 +47,13 @@ interface ConnectorSearchResponse {
   hits: ConnectorSearchHit[];
 }
 
-// Lytho's own asset picker for GraFx applies the same search constraints as this connector (these file
-// types, and the filters sent in query()). Changing them here requires the matching change on the Lytho side.
 // CHILI GraFx-supported asset file types (per docs.chiligrafx.com/GraFx-Media/overview/filetypes).
 // Sent with the search request to filter search/browse results to assets CHILI can use. This does
 // not constrain direct id lookups — detail() and the query() ObjectID intercept resolve a known
 // asset regardless of extension; browse filtering is what prevents placing unsupported types.
 // The search API matches extensions case-sensitively, so each format is listed in both lower- and
 // upper-case; `jpeg`/`tiff` are the `jpg`/`tif` synonyms.
-// NOTE: mixed-case extensions (e.g. `.Tif`) are still missed — the DAM stores `extension` as a
-// case-sensitive keyword. A case-insensitive fix (index normalizer) is tracked as a separate ticket.
+// NOTE: mixed-case extensions (e.g. `.Tif`) are still missed.
 const SUPPORTED_FILE_FORMATS = ['eps', 'jpg', 'jpeg', 'pdf', 'png', 'psd', 'tif', 'tiff', 'ai'];
 const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.toUpperCase()]);
 
@@ -106,8 +103,8 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     const terms = options.filter?.join(' ') ?? '';
 
     // Studio resolves saved assets by calling query(size=1, terms=assetId).
-    // The Lytho full-text search API rejects MongoDB ObjectIDs as search terms (returns 500).
-    // Intercept this pattern and fetch the asset directly via the detail endpoint.
+    // Lytho's full-text search does not accept asset IDs as search terms, so intercept this
+    // pattern and fetch the asset directly via the detail endpoint.
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
         `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
@@ -139,8 +136,6 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     const collectionId =
       options.collection && options.collection !== '/' ? options.collection : null;
 
-    // Search constraints sent here are mirrored by Lytho's own GraFx asset picker — see the note above
-    // SUPPORTED_FILE_FORMATS.
     const body = {
       terms,
       collectionId,
@@ -290,7 +285,8 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     }
     // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
     // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
-    // connector to stream asset bytes directly and bypass Lytho's signed-S3 download links.
+    // connector to stream asset bytes directly instead of following Lytho's usual pre-signed
+    // download links.
     // Metadata reads (detail, and the query() ObjectID lookup) use the older, pre-existing
     // `/assets/assets/{id}` endpoint. The two path families serve different purposes and are
     // NOT meant to match.
