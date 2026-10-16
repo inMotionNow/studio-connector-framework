@@ -47,18 +47,28 @@ interface ConnectorSearchResponse {
   hits: ConnectorSearchHit[];
 }
 
-// Lytho's own asset picker for GraFx applies the same search constraints as this connector (these file
-// types, and the filters sent in query()). Changing them here requires the matching change on the Lytho side.
 // CHILI GraFx-supported asset file types (per docs.chiligrafx.com/GraFx-Media/overview/filetypes).
 // Sent with the search request to filter search/browse results to assets CHILI can use. This does
 // not constrain direct id lookups — detail() and the query() ObjectID intercept resolve a known
 // asset regardless of extension; browse filtering is what prevents placing unsupported types.
 // The search API matches extensions case-sensitively, so each format is listed in both lower- and
 // upper-case; `jpeg`/`tiff` are the `jpg`/`tif` synonyms.
-// NOTE: mixed-case extensions (e.g. `.Tif`) are still missed — the DAM stores `extension` as a
-// case-sensitive keyword. A case-insensitive fix (index normalizer) is tracked as a separate ticket.
-const SUPPORTED_FILE_FORMATS = ['eps', 'jpg', 'jpeg', 'pdf', 'png', 'psd', 'tif', 'tiff', 'ai'];
-const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [ext, ext.toUpperCase()]);
+// NOTE: mixed-case extensions (e.g. `.Tif`) are still missed.
+const SUPPORTED_FILE_FORMATS = [
+  'eps',
+  'jpg',
+  'jpeg',
+  'pdf',
+  'png',
+  'psd',
+  'tif',
+  'tiff',
+  'ai',
+];
+const SUPPORTED_EXTENSIONS = SUPPORTED_FILE_FORMATS.flatMap((ext) => [
+  ext,
+  ext.toUpperCase(),
+]);
 
 // GraFx expects PNG/JPEG for on-screen (web) display. Assets already in these formats are
 // served as their original bytes; any other supported type (EPS/PDF/PSD/TIFF/AI) is served
@@ -106,30 +116,35 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     const terms = options.filter?.join(' ') ?? '';
 
     // Studio resolves saved assets by calling query(size=1, terms=assetId).
-    // The Lytho full-text search API rejects MongoDB ObjectIDs as search terms (returns 500).
-    // Intercept this pattern and fetch the asset directly via the detail endpoint.
+    // Lytho's full-text search does not accept asset IDs as search terms, so intercept this
+    // pattern and fetch the asset directly via the detail endpoint.
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
         `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
         { method: 'GET' }
       );
       if (!result.ok) {
-        throw new ConnectorHttpError(result.status, `Lytho: Asset lookup failed ${result.status} ${result.statusText}`);
+        throw new ConnectorHttpError(
+          result.status,
+          `Lytho: Asset lookup failed ${result.status} ${result.statusText}`
+        );
       }
       const asset = JSON.parse(result.text) as LythoAsset;
       return {
         pageSize: 1,
-        data: [{
-          id: asset.id,
-          name: asset.name,
-          relativePath: '/' + asset.id,
-          type: 0,
-          extension: asset.extension ?? '',
-          metaData: {
-            fileType: asset.fileType ?? '',
-            tags: asset.tags?.map((t) => t.name).join(', ') ?? '',
+        data: [
+          {
+            id: asset.id,
+            name: asset.name,
+            relativePath: '/' + asset.id,
+            type: 0,
+            extension: asset.extension ?? '',
+            metaData: {
+              fileType: asset.fileType ?? '',
+              tags: asset.tags?.map((t) => t.name).join(', ') ?? '',
+            },
           },
-        }],
+        ],
         links: { nextPage: '' },
       };
     }
@@ -137,10 +152,10 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // Tenant is resolved server-side from the authenticated user (realm/token); the connector
     // sends only the filters it uses. The full search request is built server-side by the Lytho search API.
     const collectionId =
-      options.collection && options.collection !== '/' ? options.collection : null;
+      options.collection && options.collection !== '/'
+        ? options.collection
+        : null;
 
-    // Search constraints sent here are mirrored by Lytho's own GraFx asset picker — see the note above
-    // SUPPORTED_FILE_FORMATS.
     const body = {
       terms,
       collectionId,
@@ -149,11 +164,14 @@ export default class LythoMediaConnector implements Media.MediaConnector {
       extensions: SUPPORTED_EXTENSIONS,
     };
 
-    const result = await this.runtime.fetch(`${baseUrl}/search/grafx/api/v1/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const result = await this.runtime.fetch(
+      `${baseUrl}/search/grafx/api/v1/search`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }
+    );
 
     if (!result.ok) {
       throw new ConnectorHttpError(
@@ -250,7 +268,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         // tier, but the behaviour is unobserved rather than confirmed.
         const ext = await this._getExtension(id);
         const nativeExtensions =
-          intent === 'print' ? PRINT_NATIVE_EXTENSIONS : ANIMATION_NATIVE_EXTENSIONS;
+          intent === 'print'
+            ? PRINT_NATIVE_EXTENSIONS
+            : ANIMATION_NATIVE_EXTENSIONS;
         variant = nativeExtensions.has(ext) ? 'content' : 'hrpreview';
         break;
       }
@@ -272,7 +292,9 @@ export default class LythoMediaConnector implements Media.MediaConnector {
           // animation: the contract wants PNG/JPEG, and `hrpreview` is exactly that. Note the
           // narrower native set — PDF and AI pass through on print but not here, because the
           // animation renderer fails on those raw bytes.
-          variant = ANIMATION_NATIVE_EXTENSIONS.has(ext) ? 'content' : 'hrpreview';
+          variant = ANIMATION_NATIVE_EXTENSIONS.has(ext)
+            ? 'content'
+            : 'hrpreview';
         }
         break;
       }
@@ -290,13 +312,16 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     }
     // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
     // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
-    // connector to stream asset bytes directly and bypass Lytho's signed-S3 download links.
+    // connector to stream asset bytes directly instead of following Lytho's usual pre-signed
+    // download links.
     // Metadata reads (detail, and the query() ObjectID lookup) use the older, pre-existing
     // `/assets/assets/{id}` endpoint. The two path families serve different purposes and are
     // NOT meant to match.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
-    const result = await this.runtime.fetch(`${baseUrl}${path}`, { method: 'GET' });
+    const result = await this.runtime.fetch(`${baseUrl}${path}`, {
+      method: 'GET',
+    });
     if (!result.ok) {
       throw new ConnectorHttpError(
         result.status,

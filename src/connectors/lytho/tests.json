@@ -1,7 +1,7 @@
 {
   "setup": {
     "runtime_options": {
-      "LYTHO_BASE_URL": "https://example-proxy.lambda-url.us-east-1.on.aws"
+      "LYTHO_BASE_URL": "https://api.example.com"
     }
   },
   "tests": [
@@ -152,8 +152,14 @@
                 "height": 1080,
                 "tags": [{ "id": "tag-1", "name": "Product" }],
                 "links": {
-                  "previewLink": { "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 },
-                  "hrPreviewLink": { "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 }
+                  "previewLink": {
+                    "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0",
+                    "exp": -1
+                  },
+                  "hrPreviewLink": {
+                    "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0",
+                    "exp": -1
+                  }
                 }
               }
             }
@@ -244,7 +250,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "69de58c9bb8c4c6895418fa0", "name": "Raster Asset", "extension": "jpg", "fileType": "image/jpeg" }
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Raster Asset",
+                "extension": "jpg",
+                "fileType": "image/jpeg"
+              }
             }
           },
           {
@@ -275,7 +286,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "7a0b1c2d3e4f50617283a4b5", "name": "Raster PNG Asset", "extension": "png", "fileType": "image/png" }
+              "body": {
+                "id": "7a0b1c2d3e4f50617283a4b5",
+                "name": "Raster PNG Asset",
+                "extension": "png",
+                "fileType": "image/png"
+              }
             }
           },
           {
@@ -306,7 +322,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "7b0c1d2e3f405161728394a5", "name": "Raster JPEG Asset", "extension": "jpeg", "fileType": "image/jpeg" }
+              "body": {
+                "id": "7b0c1d2e3f405161728394a5",
+                "name": "Raster JPEG Asset",
+                "extension": "jpeg",
+                "fileType": "image/jpeg"
+              }
             }
           },
           {
@@ -358,7 +379,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "69de58c9bb8c4c6895418fa0", "name": "Raster Asset", "extension": "jpg", "fileType": "image/jpeg" }
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Raster Asset",
+                "extension": "jpg",
+                "fileType": "image/jpeg"
+              }
             }
           },
           {
@@ -389,7 +415,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "69de58c9bb8c4c6895418fa0", "name": "Raster Asset", "extension": "jpg", "fileType": "image/jpeg" }
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Raster Asset",
+                "extension": "jpg",
+                "fileType": "image/jpeg"
+              }
             }
           },
           {
@@ -420,7 +451,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "69de58c9bb8c4c6895418fa0", "name": "Raster Asset", "extension": "jpg", "fileType": "image/jpeg" }
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Raster Asset",
+                "extension": "jpg",
+                "fileType": "image/jpeg"
+              }
             }
           },
           {
@@ -466,8 +502,14 @@
                 "height": 1080,
                 "tags": [{ "id": "tag-1", "name": "Product" }],
                 "links": {
-                  "previewLink": { "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 },
-                  "hrPreviewLink": { "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0", "exp": -1 }
+                  "previewLink": {
+                    "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0",
+                    "exp": -1
+                  },
+                  "hrPreviewLink": {
+                    "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0",
+                    "exp": -1
+                  }
                 }
               }
             }
@@ -495,7 +537,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+              "body": {
+                "id": "5f9d1e2c3b4a5968770a1b2c",
+                "name": "Vector Asset",
+                "extension": "eps",
+                "fileType": "application/postscript"
+              }
             }
           },
           {
@@ -526,7 +573,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "69de58c9bb8c4c6895418fa0", "name": "Raster Asset", "extension": "jpg", "fileType": "image/jpeg" }
+              "body": {
+                "id": "69de58c9bb8c4c6895418fa0",
+                "name": "Raster Asset",
+                "extension": "jpg",
+                "fileType": "image/jpeg"
+              }
             }
           },
           {
@@ -557,7 +609,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+              "body": {
+                "id": "5f9d1e2c3b4a5968770a1b2c",
+                "name": "Vector Asset",
+                "extension": "eps",
+                "fileType": "application/postscript"
+              }
             }
           },
           {
@@ -588,7 +645,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+              "body": {
+                "id": "5f9d1e2c3b4a5968770a1b2c",
+                "name": "Vector Asset",
+                "extension": "eps",
+                "fileType": "application/postscript"
+              }
             }
           },
           {
@@ -619,7 +681,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6a1b2c3d4e5f60718293a4b5", "name": "Layered Asset", "extension": "psd", "fileType": "image/vnd.adobe.photoshop" }
+              "body": {
+                "id": "6a1b2c3d4e5f60718293a4b5",
+                "name": "Layered Asset",
+                "extension": "psd",
+                "fileType": "image/vnd.adobe.photoshop"
+              }
             }
           },
           {
@@ -650,7 +717,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6b2c3d4e5f60718293a4b5c6", "name": "Scanned Asset", "extension": "tiff", "fileType": "image/tiff" }
+              "body": {
+                "id": "6b2c3d4e5f60718293a4b5c6",
+                "name": "Scanned Asset",
+                "extension": "tiff",
+                "fileType": "image/tiff"
+              }
             }
           },
           {
@@ -681,7 +753,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6e5f60718293a4b5c6d7e8f9", "name": "Short Spelling Scan", "extension": "tif", "fileType": "image/tiff" }
+              "body": {
+                "id": "6e5f60718293a4b5c6d7e8f9",
+                "name": "Short Spelling Scan",
+                "extension": "tif",
+                "fileType": "image/tiff"
+              }
             }
           },
           {
@@ -712,7 +789,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+              "body": {
+                "id": "5f9d1e2c3b4a5968770a1b2c",
+                "name": "Vector Asset",
+                "extension": "eps",
+                "fileType": "application/postscript"
+              }
             }
           },
           {
@@ -743,7 +825,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "5f9d1e2c3b4a5968770a1b2c", "name": "Vector Asset", "extension": "eps", "fileType": "application/postscript" }
+              "body": {
+                "id": "5f9d1e2c3b4a5968770a1b2c",
+                "name": "Vector Asset",
+                "extension": "eps",
+                "fileType": "application/postscript"
+              }
             }
           },
           {
@@ -774,7 +861,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+              "body": {
+                "id": "6c3d4e5f60718293a4b5c6d7",
+                "name": "Illustrator Asset",
+                "extension": "ai",
+                "fileType": "application/illustrator"
+              }
             }
           },
           {
@@ -805,7 +897,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6d4e5f60718293a4b5c6d7e8", "name": "Uppercase Vector Asset", "extension": "EPS", "fileType": "application/postscript" }
+              "body": {
+                "id": "6d4e5f60718293a4b5c6d7e8",
+                "name": "Uppercase Vector Asset",
+                "extension": "EPS",
+                "fileType": "application/postscript"
+              }
             }
           },
           {
@@ -836,7 +933,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+              "body": {
+                "id": "6c3d4e5f60718293a4b5c6d7",
+                "name": "Illustrator Asset",
+                "extension": "ai",
+                "fileType": "application/illustrator"
+              }
             }
           },
           {
@@ -867,7 +969,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+              "body": {
+                "id": "6f60718293a4b5c6d7e8f9a0",
+                "name": "Document Asset",
+                "extension": "pdf",
+                "fileType": "application/pdf"
+              }
             }
           },
           {
@@ -898,7 +1005,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+              "body": {
+                "id": "6f60718293a4b5c6d7e8f9a0",
+                "name": "Document Asset",
+                "extension": "pdf",
+                "fileType": "application/pdf"
+              }
             }
           },
           {
@@ -929,7 +1041,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+              "body": {
+                "id": "6c3d4e5f60718293a4b5c6d7",
+                "name": "Illustrator Asset",
+                "extension": "ai",
+                "fileType": "application/illustrator"
+              }
             }
           },
           {
@@ -960,7 +1077,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6f60718293a4b5c6d7e8f9a0", "name": "Document Asset", "extension": "pdf", "fileType": "application/pdf" }
+              "body": {
+                "id": "6f60718293a4b5c6d7e8f9a0",
+                "name": "Document Asset",
+                "extension": "pdf",
+                "fileType": "application/pdf"
+              }
             }
           },
           {
@@ -991,7 +1113,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+              "body": {
+                "id": "6c3d4e5f60718293a4b5c6d7",
+                "name": "Illustrator Asset",
+                "extension": "ai",
+                "fileType": "application/illustrator"
+              }
             }
           },
           {
@@ -1022,7 +1149,12 @@
             "response": {
               "status": 200,
               "headers": { "content-type": "application/json" },
-              "body": { "id": "6c3d4e5f60718293a4b5c6d7", "name": "Illustrator Asset", "extension": "ai", "fileType": "application/illustrator" }
+              "body": {
+                "id": "6c3d4e5f60718293a4b5c6d7",
+                "name": "Illustrator Asset",
+                "extension": "ai",
+                "fileType": "application/illustrator"
+              }
             }
           },
           {
