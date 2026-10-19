@@ -2,13 +2,14 @@ import { Connector, Media } from '@chili-publish/studio-connectors';
 
 // ─── Lytho API Types ──────────────────────────────────────────────────────────
 
-interface LythoDownloadLink {
-  link: string;
-  exp: number;
-}
-
 interface LythoTag {
   id: string;
+  name: string;
+}
+
+// Shape of GET /assets/grafx/assets/{id}: a DAM asset or an image uploaded to a publication. `width` and
+// `height` are null and `tags` is empty for an upload.
+interface LythoAssetTag {
   name: string;
 }
 
@@ -20,11 +21,7 @@ interface LythoAsset {
   fileType: string;
   width: number | null;
   height: number | null;
-  tags: LythoTag[];
-  links: {
-    previewLink: LythoDownloadLink;
-    hrPreviewLink?: LythoDownloadLink;
-  };
+  tags: LythoAssetTag[];
 }
 
 // Slim, connector-owned shape returned by POST /search/grafx/api/v1/search. Decoupled from Lytho's
@@ -310,12 +307,10 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         variant = 'content';
         break;
     }
-    // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
-    // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
-    // connector to stream asset bytes directly instead of following Lytho's usual pre-signed
-    // download links.
-    // Metadata reads (detail, and the query() ObjectID lookup) use `/assets/grafx/assets/{id}`, the same
-    // family without a variant, so they also work for images uploaded to a publication.
+    // Byte downloads use `/assets/grafx/assets/{id}/{variant}`, the endpoint family purpose-built for the
+    // connector to stream asset bytes directly instead of following Lytho's usual pre-signed download links.
+    // Metadata reads (detail(), and the query() id lookup) use the same family without a variant,
+    // `/assets/grafx/assets/{id}`.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
     const result = await this.runtime.fetch(`${baseUrl}${path}`, {

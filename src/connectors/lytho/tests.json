@@ -150,17 +150,7 @@
                 "fileType": "image/jpeg",
                 "width": 1920,
                 "height": 1080,
-                "tags": [{ "id": "tag-1", "name": "Product" }],
-                "links": {
-                  "previewLink": {
-                    "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0",
-                    "exp": -1
-                  },
-                  "hrPreviewLink": {
-                    "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0",
-                    "exp": -1
-                  }
-                }
+                "tags": [{ "name": "Product" }]
               }
             }
           }
@@ -500,17 +490,7 @@
                 "fileType": "image/jpeg",
                 "width": 1920,
                 "height": 1080,
-                "tags": [{ "id": "tag-1", "name": "Product" }],
-                "links": {
-                  "previewLink": {
-                    "link": "https://preview.cdn.test/69de58c9bb8c4c6895418fa0",
-                    "exp": -1
-                  },
-                  "hrPreviewLink": {
-                    "link": "https://hrpreview.cdn.test/69de58c9bb8c4c6895418fa0",
-                    "exp": -1
-                  }
-                }
+                "tags": [{ "name": "Product" }]
               }
             }
           }
@@ -1161,6 +1141,39 @@
             "url": "/assets/grafx/assets/6c3d4e5f60718293a4b5c6d7/hrpreview",
             "method": "GET",
             "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "34",
+      "name": "detail - image uploaded to a publication",
+      "descr": "An uploaded image is not a DAM asset: GET /assets/grafx/assets/{id} answers with no size and no tags, and detail() still returns it",
+      "method": "detail",
+      "arguments": {
+        "id": "6a0b1c2d3e4f5a6b7c8d9e0f",
+        "context": {}
+      },
+      "asserts": {
+        "fetch": [
+          {
+            "url": "/assets/grafx/assets/6a0b1c2d3e4f5a6b7c8d9e0f",
+            "method": "GET",
+            "count": 1,
+            "response": {
+              "status": 200,
+              "headers": { "content-type": "application/json" },
+              "body": {
+                "id": "6a0b1c2d3e4f5a6b7c8d9e0f",
+                "name": "photo.jpg",
+                "fileName": "photo.jpg",
+                "extension": "jpg",
+                "fileType": "image/jpeg",
+                "width": null,
+                "height": null,
+                "tags": []
+              }
+            }
           }
         ]
       }
