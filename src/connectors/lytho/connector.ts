@@ -2,13 +2,14 @@ import { Connector, Media } from '@chili-publish/studio-connectors';
 
 // ─── Lytho API Types ──────────────────────────────────────────────────────────
 
-interface LythoDownloadLink {
-  link: string;
-  exp: number;
-}
-
 interface LythoTag {
   id: string;
+  name: string;
+}
+
+// Shape of GET /assets/grafx/assets/{id}: a DAM asset or an image uploaded to a publication. `width` and
+// `height` are null and `tags` is empty for an upload.
+interface LythoAssetTag {
   name: string;
 }
 
@@ -20,11 +21,7 @@ interface LythoAsset {
   fileType: string;
   width: number | null;
   height: number | null;
-  tags: LythoTag[];
-  links: {
-    previewLink: LythoDownloadLink;
-    hrPreviewLink?: LythoDownloadLink;
-  };
+  tags: LythoAssetTag[];
 }
 
 // Slim, connector-owned shape returned by POST /search/grafx/api/v1/search. Decoupled from Lytho's
@@ -120,7 +117,7 @@ export default class LythoMediaConnector implements Media.MediaConnector {
     // pattern and fetch the asset directly via the detail endpoint.
     if (pageSize === 1 && /^[0-9a-f]{24}$/i.test(terms.trim())) {
       const result = await this.runtime.fetch(
-        `${baseUrl}/assets/assets/${encodeURIComponent(terms.trim())}`,
+        `${baseUrl}/assets/grafx/assets/${encodeURIComponent(terms.trim())}`,
         { method: 'GET' }
       );
       if (!result.ok) {
@@ -200,11 +197,11 @@ export default class LythoMediaConnector implements Media.MediaConnector {
   ): Promise<Media.MediaDetail> {
     const baseUrl = this._getBaseUrl();
 
-    // Metadata read uses the pre-existing `/assets/assets/{id}` endpoint. This is deliberately
-    // a different path shape from the `/assets/grafx/...` byte-download endpoint (see download());
-    // the two are not meant to match.
+    // Metadata read uses the `/assets/grafx/assets/{id}` endpoint, the same family as the byte downloads
+    // (see download()). It answers for a DAM asset and for an image a user uploaded to a publication, which
+    // is not a DAM asset, so the core `/assets/assets/{id}` endpoint cannot be used here.
     const result = await this.runtime.fetch(
-      `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
+      `${baseUrl}/assets/grafx/assets/${encodeURIComponent(id)}`,
       { method: 'GET' }
     );
 
@@ -310,13 +307,10 @@ export default class LythoMediaConnector implements Media.MediaConnector {
         variant = 'content';
         break;
     }
-    // NOTE — path shape is intentional, do not "fix" it to match detail()/query().
-    // Byte downloads use the `/assets/grafx/...` endpoint family, purpose-built for the
-    // connector to stream asset bytes directly instead of following Lytho's usual pre-signed
-    // download links.
-    // Metadata reads (detail, and the query() ObjectID lookup) use the older, pre-existing
-    // `/assets/assets/{id}` endpoint. The two path families serve different purposes and are
-    // NOT meant to match.
+    // Byte downloads use `/assets/grafx/assets/{id}/{variant}`, the endpoint family purpose-built for the
+    // connector to stream asset bytes directly instead of following Lytho's usual pre-signed download links.
+    // Metadata reads (detail(), and the query() id lookup) use the same family without a variant,
+    // `/assets/grafx/assets/{id}`.
     const path = `/assets/grafx/assets/${encodeURIComponent(id)}/${variant}`;
 
     const result = await this.runtime.fetch(`${baseUrl}${path}`, {
@@ -360,11 +354,11 @@ export default class LythoMediaConnector implements Media.MediaConnector {
 
   // Resolve an asset's file extension (lower-cased) for download-variant routing. download() is
   // handed only the id, so the extension — needed to decide PNG/JPEG-vs-convert for web fullres —
-  // is read from the metadata endpoint. Same `/assets/assets/{id}` read that detail() performs.
+  // is read from the metadata endpoint. Same `/assets/grafx/assets/{id}` read that detail() performs.
   private async _getExtension(id: string): Promise<string> {
     const baseUrl = this._getBaseUrl();
     const result = await this.runtime.fetch(
-      `${baseUrl}/assets/assets/${encodeURIComponent(id)}`,
+      `${baseUrl}/assets/grafx/assets/${encodeURIComponent(id)}`,
       { method: 'GET' }
     );
     if (!result.ok) {
