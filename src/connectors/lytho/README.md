@@ -13,7 +13,7 @@ Setting up the connector is a one-time task for an administrator. Template Desig
 ## Setup at a glance
 
 1. **In Lytho**, a Lytho account admin goes to **Settings → Advanced → GraFx connector** and clicks **Generate credentials**. The page lists every value the connector needs. The client secret is shown only once.
-2. **In CHILI GraFx**, install the Lytho connector from the Connector Hub, then open it from your environment's **Settings → Connectors**.
+2. **In CHILI GraFx**, install the Lytho connector from the Connector Hub. In your environment's **Settings → Connectors**, switch on the **Available** toggle of the Lytho row (a newly added connector is off by default), then open the connector.
 3. On the **Configuration** tab, paste the values Lytho labels **Runtime options → LYTHO_BASE_URL** and **Proxy settings → Allowed domain**.
 4. On the **Authentication** tab, choose how users sign in:
    - **Account-level access**: everyone sees every asset in the Lytho account. Use OAuth 2.0 Client Credentials for server and browser, with the **Client ID**, **Client secret**, **Token endpoint**, and **Scope** from Lytho.
